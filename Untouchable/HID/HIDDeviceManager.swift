@@ -1,4 +1,5 @@
 import Foundation
+import Cocoa
 import Combine
 import IOKit.hid
 import os
@@ -52,12 +53,17 @@ final class HIDDeviceManager: ObservableObject {
 
     private var manager: IOHIDManager?
     let suppressor = HIDEventSuppressor()
-    private var appSettings: AppSettings?
+    private var appSettings: AppSettings
+
+    /// Retains `self` for the C callback context pointer; released in `deinit`.
+    private var retainedSelf: Unmanaged<HIDDeviceManager>?
 
     // MARK: - Init
 
-    init() {
+    init(settings: AppSettings) {
+        self.appSettings = settings
         setupManager()
+        observeSystemWake()
     }
 
     deinit {
@@ -66,14 +72,26 @@ final class HIDDeviceManager: ObservableObject {
             IOHIDManagerUnscheduleFromRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
             IOHIDManagerClose(manager, IOOptionBits(kIOHIDOptionsTypeNone))
         }
+        retainedSelf?.release()
     }
 
-    // MARK: - Setup
-
-    func configure(with settings: AppSettings) {
-        self.appSettings = settings
-        refreshDevices()
-        reapplyBlockedDevices()
+    /// Re-seizes all blocked devices after the system wakes from sleep.
+    ///
+    /// IOKit can silently lose device seizures when hardware powers down
+    /// during sleep. No callbacks fire to inform the app, so we must
+    /// proactively re-establish exclusive ownership on wake.
+    private func observeSystemWake() {
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            logger.info("System wake detected -- re-seizing blocked devices")
+            self.suppressor.reseizeAll()
+            self.refreshDevices()
+            self.reapplyBlockedDevices()
+        }
     }
 
     private func setupManager() {
@@ -95,7 +113,9 @@ final class HIDDeviceManager: ObservableObject {
 
         IOHIDManagerSetDeviceMatchingMultiple(manager, matchingCriteria as CFArray)
 
-        let selfPtr = Unmanaged.passRetained(self).toOpaque()
+        let unmanaged = Unmanaged.passRetained(self)
+        retainedSelf = unmanaged
+        let selfPtr = unmanaged.toOpaque()
 
         IOHIDManagerRegisterDeviceMatchingCallback(manager, { context, _, _, device in
             guard let context = context else { return }
@@ -121,7 +141,7 @@ final class HIDDeviceManager: ObservableObject {
 
     private func deviceConnected(_ device: IOHIDDevice) {
         let persistID = persistenceID(for: device)
-        let blocked = appSettings?.isBlocked(persistID) ?? false
+        let blocked = appSettings.isBlocked(persistID)
         guard let hidDevice = HIDDevice(from: device, isBlocked: blocked) else { return }
 
         // Deduplicate by unique instance ID
@@ -174,7 +194,7 @@ final class HIDDeviceManager: ObservableObject {
 
         var merged: [HIDDevice] = []
         for ioDevice in deviceSet {
-            let blocked = appSettings?.isBlocked(persistenceID(for: ioDevice)) ?? false
+            let blocked = appSettings.isBlocked(persistenceID(for: ioDevice))
             if let device = HIDDevice(from: ioDevice, isBlocked: blocked) {
                 // Keep existing entry if we already have it (preserves ioHIDDevice ref)
                 if let existing = existingByID[device.id] {
