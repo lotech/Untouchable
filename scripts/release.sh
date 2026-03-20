@@ -349,9 +349,20 @@ notarize_dmg() {
     echo "  (This usually takes 2-10 minutes)"
     echo ""
 
-    if xcrun notarytool submit "$dmg_path" \
+    local notary_output
+    notary_output="$(xcrun notarytool submit "$dmg_path" \
         --keychain-profile "Untouchable" \
-        --wait; then
+        --wait 2>&1)" || true
+
+    echo "$notary_output"
+    echo ""
+
+    # Extract the submission ID for log retrieval
+    local submission_id
+    submission_id="$(echo "$notary_output" | grep '  id:' | head -1 | awk '{print $2}')"
+
+    # notarytool returns exit 0 even on Invalid status, so check the actual output
+    if echo "$notary_output" | grep -q "status: Accepted"; then
         success "Notarization succeeded."
 
         log "Stapling notarization ticket..."
@@ -361,16 +372,25 @@ notarize_dmg() {
             warn "Stapling failed. Users can still run the app (macOS checks online)."
         fi
     else
-        fail "Notarization failed."
+        fail "Notarization failed or was rejected by Apple."
         echo ""
+        if [[ -n "$submission_id" ]]; then
+            echo "  Fetching notarization log..."
+            echo ""
+            xcrun notarytool log "$submission_id" \
+                --keychain-profile "Untouchable" 2>&1 || true
+            echo ""
+        fi
         echo "  Common causes:"
         echo "    - Missing hardened runtime"
         echo "    - Unsigned nested frameworks"
         echo "    - Invalid entitlements"
         echo ""
-        echo "  View details:"
-        echo "    xcrun notarytool log <submission-id> --keychain-profile Untouchable"
-        echo ""
+        if [[ -n "$submission_id" ]]; then
+            echo "  View full details:"
+            echo "    xcrun notarytool log $submission_id --keychain-profile Untouchable"
+            echo ""
+        fi
         if ! ask_yn "Continue without notarization?" "n"; then
             exit 1
         fi
