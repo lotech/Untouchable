@@ -128,9 +128,9 @@ check_tag() {
     local tag="$1"
     log "Checking tag $tag..."
 
-    if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        fail "Tag '$tag' does not match vX.Y.Z format."
-        echo "      Fix: Use semantic versioning, e.g. v1.0.0, v0.2.1"
+    if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
+        fail "Tag '$tag' does not match vX.Y.Z or vX.Y format."
+        echo "      Fix: Use semantic versioning, e.g. v1.0.0, v1.0, v0.2.1"
         preflight_passed=false
         return
     fi

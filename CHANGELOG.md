@@ -7,13 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Security
-- Fixed use-after-free risk: `Unmanaged.passRetained` replaces `passUnretained` for IOHIDManager callback context
-- Replaced all `print()` logging with `os.Logger` and `privacy: .private` annotations to prevent device info leaking to system log
-- Removed empty `SUFeedURL` from Info.plist to prevent future update hijack surface
-- Narrowed `.gitignore` `*.xml` to `appcast.xml` only
-- Added `eddsa_priv.pem` to `.gitignore` for future Sparkle EdDSA signing
-- Documented sandbox-off as accepted risk in CLAUDE.md
+## [1.0.0] - 2026-03-20
+
+### Added
+- App icon: touch-ripple with prohibition slash on indigo-blue gradient, all macOS sizes (16-1024px)
+- Installed vibe-security skill for automated security auditing (`.claude/skills/vibe-security/`)
+- AccentColor asset to fix Xcode warning
+- GitHub Actions CI workflow for build validation on push/PR to main
+- Release script (`scripts/release.sh`) with preflight checks, signing verification, DMG packaging, notarization, and GitHub Release creation
 
 ### Changed
 - Physical devices now shown at top level; virtual/software devices (VirtualHID, Karabiner, etc.) moved to "Other Devices" submenu
@@ -25,12 +26,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Toggle checkmark not showing when blocking a device (was using custom view instead of native Toggle)
 - Duplicate devices with same vendor:product pair collapsing into one entry
 
-### Added
-- App icon: touch-ripple with prohibition slash on indigo-blue gradient, all macOS sizes (16-1024px)
-- Installed vibe-security skill for automated security auditing (`.claude/skills/vibe-security/`)
-- AccentColor asset to fix Xcode warning
-- GitHub Actions CI workflow for build validation on push/PR to main
-- Release script (`scripts/release.sh`) with preflight checks, signing verification, DMG packaging, notarization, and GitHub Release creation
+### Security
+- Fixed use-after-free risk: `Unmanaged.passRetained` replaces `passUnretained` for IOHIDManager callback context
+- Replaced all `print()` logging with `os.Logger` and `privacy: .private` annotations to prevent device info leaking to system log
+- Removed empty `SUFeedURL` from Info.plist to prevent future update hijack surface
+- Narrowed `.gitignore` `*.xml` to `appcast.xml` only
+- Added `eddsa_priv.pem` to `.gitignore` for future Sparkle EdDSA signing
+- Documented sandbox-off as accepted risk in CLAUDE.md
 
 ## [0.1.0] - 2026-03-20
 
