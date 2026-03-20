@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve package dependencies
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project Untouchable.xcodeproj \
+            -scheme Untouchable \
+            -quiet
+
+      - name: Build (Release)
+        run: |
+          xcodebuild build \
+            -project Untouchable.xcodeproj \
+            -scheme Untouchable \
+            -configuration Release \
+            -derivedDataPath build \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_ALLOWED=NO \
+            -quiet
+
+      - name: Verify build product exists
+        run: test -d build/Build/Products/Release/Untouchable.app
