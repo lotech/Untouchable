@@ -1,6 +1,9 @@
 import Foundation
 import Combine
 import IOKit.hid
+import os
+
+private let logger = Logger(subsystem: "vision.lotech.Untouchable", category: "HIDDeviceManager")
 
 /// Manages HID device enumeration and publishes the current device list.
 ///
@@ -37,6 +40,7 @@ final class HIDDeviceManager: ObservableObject {
     deinit {
         suppressor.releaseAll()
         if let manager = manager {
+            IOHIDManagerUnscheduleFromRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
             IOHIDManagerClose(manager, IOOptionBits(kIOHIDOptionsTypeNone))
         }
     }
@@ -56,27 +60,23 @@ final class HIDDeviceManager: ObservableObject {
 
         // Match pointing devices: mice, pointers, touchscreens, digitizers
         let matchingCriteria: [[String: Any]] = [
-            // Generic Desktop - Mouse
             [kIOHIDDeviceUsagePageKey: kHIDPage_GenericDesktop,
              kIOHIDDeviceUsageKey: kHIDUsage_GD_Mouse],
-            // Generic Desktop - Pointer
             [kIOHIDDeviceUsagePageKey: kHIDPage_GenericDesktop,
              kIOHIDDeviceUsageKey: kHIDUsage_GD_Pointer],
-            // Digitizer - Touch Screen
             [kIOHIDDeviceUsagePageKey: kHIDPage_Digitizer,
              kIOHIDDeviceUsageKey: kHIDUsage_Dig_TouchScreen],
-            // Digitizer - Touch Pad
             [kIOHIDDeviceUsagePageKey: kHIDPage_Digitizer,
              kIOHIDDeviceUsageKey: kHIDUsage_Dig_TouchPad],
-            // Digitizer - Digitizer
             [kIOHIDDeviceUsagePageKey: kHIDPage_Digitizer,
              kIOHIDDeviceUsageKey: kHIDUsage_Dig_Digitizer],
         ]
 
         IOHIDManagerSetDeviceMatchingMultiple(manager, matchingCriteria as CFArray)
 
-        // Register connect/disconnect callbacks
-        let selfPtr = Unmanaged.passUnretained(self).toOpaque()
+        // Retain self for the duration of the callback registration.
+        // Safe because deinit unschedules the manager before dealloc completes.
+        let selfPtr = Unmanaged.passRetained(self).toOpaque()
 
         IOHIDManagerRegisterDeviceMatchingCallback(manager, { context, _, _, device in
             guard let context = context else { return }
@@ -108,6 +108,7 @@ final class HIDDeviceManager: ObservableObject {
         // Avoid duplicates
         if !devices.contains(where: { $0.id == hidDevice.id }) {
             devices.append(hidDevice)
+            logger.info("Device connected: \(hidDevice.name, privacy: .private) (\(hidDevice.id, privacy: .private))")
         }
 
         // Re-apply seizure if this device was previously blocked
@@ -120,6 +121,7 @@ final class HIDDeviceManager: ObservableObject {
         let id = deviceID(for: device)
         suppressor.releaseByID(id)
         devices.removeAll(where: { $0.id == id })
+        logger.info("Device disconnected: \(id, privacy: .private)")
     }
 
     private func deviceID(for device: IOHIDDevice) -> String {

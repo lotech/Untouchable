@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- Fixed use-after-free risk: `Unmanaged.passRetained` replaces `passUnretained` for IOHIDManager callback context
+- Replaced all `print()` logging with `os.Logger` and `privacy: .private` annotations to prevent device info leaking to system log
+- Removed empty `SUFeedURL` from Info.plist to prevent future update hijack surface
+- Narrowed `.gitignore` `*.xml` to `appcast.xml` only
+- Added `eddsa_priv.pem` to `.gitignore` for future Sparkle EdDSA signing
+- Documented sandbox-off as accepted risk in CLAUDE.md
+
+### Added
+- Installed vibe-security skill for automated security auditing (`.claude/skills/vibe-security/`)
+- AccentColor asset to fix Xcode warning
+
 ## [0.1.0] - 2026-03-20
 
 ### Added
