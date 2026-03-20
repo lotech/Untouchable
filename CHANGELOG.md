@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - App icon: touch-ripple with prohibition slash on indigo-blue gradient, all macOS sizes (16-1024px)
 - Installed vibe-security skill for automated security auditing (`.claude/skills/vibe-security/`)
 - AccentColor asset to fix Xcode warning
+- GitHub Actions CI workflow for build validation on push/PR to main
+- Release script (`scripts/release.sh`) with preflight checks, signing verification, DMG packaging, notarization, and GitHub Release creation
 
 ## [0.1.0] - 2026-03-20
 
