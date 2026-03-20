@@ -1,0 +1,51 @@
+# Xcode
+build/
+DerivedData/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+*.xcuserstate
+*.xcscmblueprint
+*.xcworkspace
+!*.xcworkspace/contents.xcworkspacedata
+
+# Swift Package Manager
+.build/
+Packages/
+Package.pins
+Package.resolved
+*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+
+# CocoaPods (not used, but just in case)
+Pods/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Archives
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Signing
+*.p12
+*.mobileprovision
+*.provisionprofile
+
+# Sparkle
+*.delta
+*.xml
+dsa_priv.pem
