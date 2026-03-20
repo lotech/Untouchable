@@ -60,10 +60,9 @@ SVG_ICON = r"""<?xml version="1.0" encoding="UTF-8"?>
   <!-- Touch point dot at center -->
   <circle cx="512" cy="460" r="12" fill="white" opacity="0.95"/>
 
-  <!-- Lucide "pointer" icon, offset right+down and rotated to point toward center -->
-  <!-- Pointer shifted 7.5% down (77px). Rotation pivot at (582,537) -->
-  <g transform="rotate(-15, 582, 537)">
-    <g transform="translate(409.2, 508) scale(14.4)"
+  <!-- Lucide "pointer" icon, offset right and rotated to point toward center -->
+  <g transform="rotate(-15, 582, 460)">
+    <g transform="translate(409.2, 431.2) scale(14.4)"
        fill="none" stroke="white" stroke-width="2"
        stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
       <path d="M22 14a8 8 0 0 1-8 8"/>
