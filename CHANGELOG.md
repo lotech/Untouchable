@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Entitlements verification step in release script (rejects get-task-allow before notarization)
 - Mach-O binary verification step in CI workflow
 - Xcode version pin (16.2) in CI workflow for reproducible builds
+- System wake observer: re-seizes all blocked devices after sleep/wake (IOKit can silently lose seizures when hardware powers down)
+- Automatic retry for failed device seizures (up to 3 attempts with escalating delay) -- catches multi-interface touchscreens where some HID interfaces are not immediately ready for exclusive access
 
 ### Changed
 - HIDDeviceManager now receives AppSettings at init, ensuring blocked devices are seized immediately on launch instead of waiting for the menu to be opened
@@ -25,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Redundant LSBackgroundOnly key from Info.plist (LSUIElement is sufficient for menu bar apps)
 
 ### Fixed
+- Ghost touches leaking through on multi-interface touchscreens: some HID interfaces failed to seize immediately after enumeration (IOReturn not-permitted); now retries up to 3 times with escalating delay
+- Seizures silently lost after system sleep/wake: IOKit releases exclusive device access when hardware powers down but fires no callbacks; now re-seizes all blocked devices on NSWorkspace.didWakeNotification
 - Blocked devices not re-seized on launch until user opens the menu (AppSettings was nil during initial IOHIDManager matching callbacks)
 - Release script not passing Developer ID signing identity to xcodebuild (fell back to Apple Development, causing Gatekeeper rejection)
 - Release DMG not codesigned (notarization requires both the app and DMG to be signed)
