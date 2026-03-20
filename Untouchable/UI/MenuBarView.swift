@@ -36,6 +36,10 @@ struct MenuBarView: View {
 
         Divider()
 
+        Button("About Untouchable") {
+            AboutWindow.show()
+        }
+
         Button("Check for Updates...") {
             UpdaterManager.shared.checkForUpdates()
         }
