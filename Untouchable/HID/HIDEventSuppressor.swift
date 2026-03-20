@@ -31,7 +31,7 @@ final class HIDEventSuppressor {
         let result = IOHIDDeviceOpen(ioDevice, IOOptionBits(kIOHIDOptionsTypeSeizeDevice))
         if result == kIOReturnSuccess {
             // Register a no-op callback -- required by IOKit even when seizing
-            IOHIDDeviceRegisterInputValueCallback(ioDevice, { _, _, _ in
+            IOHIDDeviceRegisterInputValueCallback(ioDevice, { _, _, _, _ in
                 // Discard all events
             }, nil)
 
