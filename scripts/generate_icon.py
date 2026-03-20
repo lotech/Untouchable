@@ -38,17 +38,17 @@ SVG_ICON = r"""<?xml version="1.0" encoding="UTF-8"?>
   <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228" fill="url(#glow)"/>
 
   <!-- Ripple rings centered at fingertip touch point (brighter for dark bg) -->
-  <circle cx="512" cy="460" r="70" fill="none" stroke="white" stroke-width="16" opacity="0.75"/>
-  <circle cx="512" cy="460" r="140" fill="none" stroke="white" stroke-width="13" opacity="0.50"/>
-  <circle cx="512" cy="460" r="210" fill="none" stroke="white" stroke-width="10" opacity="0.30"/>
+  <circle cx="582" cy="460" r="70" fill="none" stroke="white" stroke-width="16" opacity="0.75"/>
+  <circle cx="582" cy="460" r="140" fill="none" stroke="white" stroke-width="13" opacity="0.50"/>
+  <circle cx="582" cy="460" r="210" fill="none" stroke="white" stroke-width="10" opacity="0.30"/>
 
   <!-- Touch point dot -->
-  <circle cx="512" cy="460" r="12" fill="white" opacity="0.95"/>
+  <circle cx="582" cy="460" r="12" fill="white" opacity="0.95"/>
 
   <!-- Lucide "hand" icon (ISC license), fingers up, coming from bottom -->
-  <!-- 20% smaller: s=14.4. Middle fingertip (12,2) at (512,460). -->
-  <!-- tx=512-12*14.4=339.2, ty=460-2*14.4=431.2 -->
-  <g transform="translate(339.2, 431.2) scale(14.4)"
+  <!-- 20% smaller: s=14.4. Middle fingertip (12,2) at (582,460). -->
+  <!-- tx=582-12*14.4=409.2, ty=460-2*14.4=431.2 -->
+  <g transform="translate(409.2, 431.2) scale(14.4)"
      fill="none" stroke="white" stroke-width="2"
      stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
     <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
