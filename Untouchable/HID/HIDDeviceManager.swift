@@ -52,11 +52,15 @@ final class HIDDeviceManager: ObservableObject {
 
     private var manager: IOHIDManager?
     let suppressor = HIDEventSuppressor()
-    private var appSettings: AppSettings?
+    private var appSettings: AppSettings
+
+    /// Retains `self` for the C callback context pointer; released in `deinit`.
+    private var retainedSelf: Unmanaged<HIDDeviceManager>?
 
     // MARK: - Init
 
-    init() {
+    init(settings: AppSettings) {
+        self.appSettings = settings
         setupManager()
     }
 
@@ -66,14 +70,7 @@ final class HIDDeviceManager: ObservableObject {
             IOHIDManagerUnscheduleFromRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
             IOHIDManagerClose(manager, IOOptionBits(kIOHIDOptionsTypeNone))
         }
-    }
-
-    // MARK: - Setup
-
-    func configure(with settings: AppSettings) {
-        self.appSettings = settings
-        refreshDevices()
-        reapplyBlockedDevices()
+        retainedSelf?.release()
     }
 
     private func setupManager() {
@@ -95,7 +92,9 @@ final class HIDDeviceManager: ObservableObject {
 
         IOHIDManagerSetDeviceMatchingMultiple(manager, matchingCriteria as CFArray)
 
-        let selfPtr = Unmanaged.passRetained(self).toOpaque()
+        let unmanaged = Unmanaged.passRetained(self)
+        retainedSelf = unmanaged
+        let selfPtr = unmanaged.toOpaque()
 
         IOHIDManagerRegisterDeviceMatchingCallback(manager, { context, _, _, device in
             guard let context = context else { return }
@@ -121,7 +120,7 @@ final class HIDDeviceManager: ObservableObject {
 
     private func deviceConnected(_ device: IOHIDDevice) {
         let persistID = persistenceID(for: device)
-        let blocked = appSettings?.isBlocked(persistID) ?? false
+        let blocked = appSettings.isBlocked(persistID)
         guard let hidDevice = HIDDevice(from: device, isBlocked: blocked) else { return }
 
         // Deduplicate by unique instance ID
@@ -174,7 +173,7 @@ final class HIDDeviceManager: ObservableObject {
 
         var merged: [HIDDevice] = []
         for ioDevice in deviceSet {
-            let blocked = appSettings?.isBlocked(persistenceID(for: ioDevice)) ?? false
+            let blocked = appSettings.isBlocked(persistenceID(for: ioDevice))
             if let device = HIDDevice(from: ioDevice, isBlocked: blocked) {
                 // Keep existing entry if we already have it (preserves ioHIDDevice ref)
                 if let existing = existingByID[device.id] {

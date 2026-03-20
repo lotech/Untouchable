@@ -95,7 +95,7 @@ Untouchable/
     HIDEventSuppressor.swift      # Seize/release exclusive device ownership
   UI/
     MenuBarView.swift             # SwiftUI menu content
-    DeviceRowView.swift           # Per-device toggle row
+    AboutView.swift               # About window and view
   Settings/
     AppSettings.swift             # UserDefaults persistence
   LoginItem/
