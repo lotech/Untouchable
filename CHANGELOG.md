@@ -15,6 +15,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `eddsa_priv.pem` to `.gitignore` for future Sparkle EdDSA signing
 - Documented sandbox-off as accepted risk in CLAUDE.md
 
+### Changed
+- Physical devices now shown at top level; virtual/software devices (VirtualHID, Karabiner, etc.) moved to "Other Devices" submenu
+- Device toggles use native macOS checkmarks instead of custom circle icons -- blocked state now visually clear
+- Blocking a device now blocks ALL its HID interfaces (same vendor:product), not just one
+- Each HID interface gets a unique ID (IOKit registry entry) so duplicates display correctly
+
+### Fixed
+- Toggle checkmark not showing when blocking a device (was using custom view instead of native Toggle)
+- Duplicate devices with same vendor:product pair collapsing into one entry
+
 ### Added
 - Installed vibe-security skill for automated security auditing (`.claude/skills/vibe-security/`)
 - AccentColor asset to fix Xcode warning

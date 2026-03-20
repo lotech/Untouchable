@@ -6,27 +6,31 @@ struct MenuBarView: View {
     @ObservedObject var appSettings: AppSettings
 
     var body: some View {
-        // Devices section
+        // Physical devices section
         Section("Devices") {
-            if deviceManager.devices.isEmpty {
-                Text("No pointing devices found")
+            let physical = deviceManager.physicalDevices
+            if physical.isEmpty {
+                Text("No physical devices found")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(deviceManager.devices) { device in
-                    DeviceRowView(device: device) {
-                        deviceManager.toggleBlocked(for: device)
-                        // Read updated state from the manager's array
-                        if let updated = deviceManager.devices.first(where: { $0.id == device.id }) {
-                            appSettings.setBlocked(updated.isBlocked, forDeviceID: device.id)
-                        }
-                    }
+                ForEach(physical) { device in
+                    deviceToggleButton(for: device)
+                }
+            }
+        }
+
+        // Virtual devices in a submenu
+        let virtual = deviceManager.virtualDevices
+        if !virtual.isEmpty {
+            Menu("Other Devices (\(virtual.count))") {
+                ForEach(virtual) { device in
+                    deviceToggleButton(for: device)
                 }
             }
         }
 
         Divider()
 
-        // Launch at Login toggle
         Toggle("Launch at Login", isOn: $appSettings.launchAtLogin)
             .onChange(of: appSettings.launchAtLogin) { newValue in
                 LoginItemManager.shared.setEnabled(newValue)
@@ -34,7 +38,6 @@ struct MenuBarView: View {
 
         Divider()
 
-        // Sparkle update stub (disabled until wired)
         Button("Check for Updates...") {
             UpdaterManager.shared.checkForUpdates()
         }
@@ -42,10 +45,28 @@ struct MenuBarView: View {
 
         Divider()
 
-        // Quit
         Button("Quit Untouchable") {
             NSApplication.shared.terminate(nil)
         }
         .keyboardShortcut("q")
+    }
+
+    @ViewBuilder
+    private func deviceToggleButton(for device: HIDDevice) -> some View {
+        // Use a Toggle so macOS renders a native checkmark
+        Toggle(isOn: Binding(
+            get: {
+                deviceManager.devices.first(where: { $0.id == device.id })?.isBlocked ?? false
+            },
+            set: { _ in
+                deviceManager.toggleBlocked(for: device)
+                appSettings.setBlocked(
+                    deviceManager.devices.first(where: { $0.id == device.id })?.isBlocked ?? false,
+                    forDeviceID: device.persistenceID
+                )
+            }
+        )) {
+            Text(device.displayName)
+        }
     }
 }
