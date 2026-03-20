@@ -42,7 +42,10 @@ ask_yn() {
         read -rp "$prompt [y/N]: " yn
         yn="${yn:-n}"
     fi
-    [[ "${yn,,}" == "y" ]]
+    case "$yn" in
+        [Yy]) return 0 ;;
+        *)    return 1 ;;
+    esac
 }
 
 die() {
