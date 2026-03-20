@@ -6,13 +6,6 @@ import os
 private let logger = Logger(subsystem: "vision.lotech.Untouchable", category: "HIDDeviceManager")
 
 /// Manages HID device enumeration and publishes the current device list.
-///
-/// Wraps `IOHIDManager` to:
-/// 1. Match pointing devices (mice, trackpads, touchscreens, digitizers).
-/// 2. Observe device connect/disconnect events.
-/// 3. Publish an up-to-date `[HIDDevice]` array for the UI to bind to.
-///
-/// Device seizure (suppression) is handled by ``HIDEventSuppressor``.
 final class HIDDeviceManager: ObservableObject {
 
     // MARK: - Published State
@@ -20,15 +13,20 @@ final class HIDDeviceManager: ObservableObject {
     /// All currently connected HID pointing devices.
     @Published var devices: [HIDDevice] = []
 
+    /// Physical (non-virtual) devices, sorted by name.
+    var physicalDevices: [HIDDevice] {
+        devices.filter { !$0.isVirtual }.sorted { $0.name < $1.name }
+    }
+
+    /// Virtual/software devices, sorted by name.
+    var virtualDevices: [HIDDevice] {
+        devices.filter { $0.isVirtual }.sorted { $0.name < $1.name }
+    }
+
     // MARK: - Private
 
-    /// The IOHIDManager used to enumerate and monitor HID devices.
     private var manager: IOHIDManager?
-
-    /// The event suppressor responsible for seizing/releasing individual devices.
     let suppressor = HIDEventSuppressor()
-
-    /// Reference to app settings for checking persisted blocked state.
     private var appSettings: AppSettings?
 
     // MARK: - Init
@@ -47,7 +45,6 @@ final class HIDDeviceManager: ObservableObject {
 
     // MARK: - Setup
 
-    /// Connects to AppSettings so we can restore blocked state on enumeration.
     func configure(with settings: AppSettings) {
         self.appSettings = settings
         refreshDevices()
@@ -58,7 +55,6 @@ final class HIDDeviceManager: ObservableObject {
         manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
         guard let manager = manager else { return }
 
-        // Match pointing devices: mice, pointers, touchscreens, digitizers
         let matchingCriteria: [[String: Any]] = [
             [kIOHIDDeviceUsagePageKey: kHIDPage_GenericDesktop,
              kIOHIDDeviceUsageKey: kHIDUsage_GD_Mouse],
@@ -74,8 +70,6 @@ final class HIDDeviceManager: ObservableObject {
 
         IOHIDManagerSetDeviceMatchingMultiple(manager, matchingCriteria as CFArray)
 
-        // Retain self for the duration of the callback registration.
-        // Safe because deinit unschedules the manager before dealloc completes.
         let selfPtr = Unmanaged.passRetained(self).toOpaque()
 
         IOHIDManagerRegisterDeviceMatchingCallback(manager, { context, _, _, device in
@@ -94,7 +88,6 @@ final class HIDDeviceManager: ObservableObject {
             }
         }, selfPtr)
 
-        // Schedule on the main run loop and open
         IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
         IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
     }
@@ -102,29 +95,30 @@ final class HIDDeviceManager: ObservableObject {
     // MARK: - Device callbacks
 
     private func deviceConnected(_ device: IOHIDDevice) {
-        let blocked = appSettings?.isBlocked(deviceID(for: device)) ?? false
+        let persistID = persistenceID(for: device)
+        let blocked = appSettings?.isBlocked(persistID) ?? false
         guard let hidDevice = HIDDevice(from: device, isBlocked: blocked) else { return }
 
-        // Avoid duplicates
         if !devices.contains(where: { $0.id == hidDevice.id }) {
             devices.append(hidDevice)
-            logger.info("Device connected: \(hidDevice.name, privacy: .private) (\(hidDevice.id, privacy: .private))")
+            logger.info("Device connected: \(hidDevice.name, privacy: .private) (\(hidDevice.id, privacy: .private)) virtual=\(hidDevice.isVirtual)")
         }
 
-        // Re-apply seizure if this device was previously blocked
         if blocked {
             suppressor.seize(hidDevice)
         }
     }
 
     private func deviceDisconnected(_ device: IOHIDDevice) {
-        let id = deviceID(for: device)
-        suppressor.releaseByID(id)
-        devices.removeAll(where: { $0.id == id })
-        logger.info("Device disconnected: \(id, privacy: .private)")
+        // Find by IOHIDDevice reference since the device is being removed
+        if let index = devices.firstIndex(where: { $0.ioHIDDevice == device }) {
+            let removed = devices.remove(at: index)
+            suppressor.releaseByID(removed.id)
+            logger.info("Device disconnected: \(removed.name, privacy: .private) (\(removed.id, privacy: .private))")
+        }
     }
 
-    private func deviceID(for device: IOHIDDevice) -> String {
+    private func persistenceID(for device: IOHIDDevice) -> String {
         let vid = IOHIDDeviceGetProperty(device, kIOHIDVendorIDKey as CFString) as? Int ?? 0
         let pid = IOHIDDeviceGetProperty(device, kIOHIDProductIDKey as CFString) as? Int ?? 0
         return "\(vid):\(pid)"
@@ -132,38 +126,45 @@ final class HIDDeviceManager: ObservableObject {
 
     // MARK: - Public API
 
-    /// Refreshes the device list by re-querying the IOHIDManager.
     func refreshDevices() {
         guard let manager = manager else { return }
         guard let deviceSet = IOHIDManagerCopyDevices(manager) as? Set<IOHIDDevice> else { return }
 
         var newDevices: [HIDDevice] = []
         for ioDevice in deviceSet {
-            let blocked = appSettings?.isBlocked(deviceID(for: ioDevice)) ?? false
+            let blocked = appSettings?.isBlocked(persistenceID(for: ioDevice)) ?? false
             if let device = HIDDevice(from: ioDevice, isBlocked: blocked) {
                 newDevices.append(device)
             }
         }
 
-        devices = newDevices.sorted(by: { $0.name < $1.name })
+        devices = newDevices
     }
 
-    /// Re-applies seizure for all persisted blocked devices.
     private func reapplyBlockedDevices() {
         for device in devices where device.isBlocked {
             suppressor.seize(device)
         }
     }
 
-    /// Toggles the blocked state for the given device.
+    /// Toggles the blocked state for a device. Blocks/unblocks ALL interfaces
+    /// sharing the same persistenceID (vendor:product).
     func toggleBlocked(for device: HIDDevice) {
-        guard let index = devices.firstIndex(where: { $0.id == device.id }) else { return }
-        devices[index].isBlocked.toggle()
-
-        if devices[index].isBlocked {
-            suppressor.seize(devices[index])
+        let newBlocked: Bool
+        if let index = devices.firstIndex(where: { $0.id == device.id }) {
+            newBlocked = !devices[index].isBlocked
         } else {
-            suppressor.release(devices[index])
+            return
+        }
+
+        // Apply to all interfaces with the same vendor:product
+        for i in devices.indices where devices[i].persistenceID == device.persistenceID {
+            devices[i].isBlocked = newBlocked
+            if newBlocked {
+                suppressor.seize(devices[i])
+            } else {
+                suppressor.release(devices[i])
+            }
         }
     }
 }
