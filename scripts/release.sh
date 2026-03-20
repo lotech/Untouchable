@@ -226,7 +226,8 @@ do_release_build() {
         CODE_SIGN_STYLE=Manual \
         CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
         DEVELOPMENT_TEAM="$TEAM_ID" \
-        OTHER_CODE_SIGN_FLAGS="--timestamp"
+        OTHER_CODE_SIGN_FLAGS="--timestamp" \
+        CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO
 
     APP_PATH="$BUILD_DIR/Build/Products/Release/$APP_NAME"
 

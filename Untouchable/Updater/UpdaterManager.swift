@@ -2,15 +2,16 @@ import Foundation
 
 /// Stub for Sparkle-based software update support.
 ///
-/// Sparkle is included as a package dependency but is not wired up yet.
-/// This manager provides the interface that the UI binds to so that the
-/// "Check for Updates…" menu item exists from day one.
+/// Sparkle is not yet added as a dependency. This manager provides the
+/// interface that the UI binds to so that the "Check for Updates" menu
+/// item exists from day one.
 ///
 /// ## Wiring Up Later
-/// 1. Import `Sparkle`.
-/// 2. Create an `SPUStandardUpdaterController` in `init()`.
-/// 3. Forward `checkForUpdates()` to the controller's `checkForUpdates(_:)`.
-/// 4. Enable the menu item in ``MenuBarView``.
+/// 1. Add Sparkle 2.x as an SPM dependency.
+/// 2. Import `Sparkle`.
+/// 3. Create an `SPUStandardUpdaterController` in `init()`.
+/// 4. Forward `checkForUpdates()` to the controller's `checkForUpdates(_:)`.
+/// 5. Enable the menu item in ``MenuBarView``.
 final class UpdaterManager {
 
     static let shared = UpdaterManager()
