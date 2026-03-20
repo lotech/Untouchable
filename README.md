@@ -14,7 +14,7 @@ A macOS menu bar app that suppresses input from specific HID pointing devices --
 
 ## The Problem
 
-External touchscreens (and some built-in ones) can send phantom touch events -- ghost taps, erratic cursor movement, or unwanted clicks. macOS provides no built-in way to disable a specific pointing device without physically unplugging it.
+External touchscreens can send phantom touch events -- ghost taps, erratic cursor movement, or unwanted clicks. macOS provides no built-in way to disable a specific pointing device without physically unplugging it.
 
 ## The Solution
 
