@@ -37,24 +37,25 @@ SVG_ICON = r"""<?xml version="1.0" encoding="UTF-8"?>
   <!-- Inner glow overlay -->
   <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228" fill="url(#glow)"/>
 
-  <!-- Ripple rings centered at fingertip touch point (brighter for dark bg) -->
-  <circle cx="582" cy="460" r="70" fill="none" stroke="white" stroke-width="16" opacity="0.75"/>
-  <circle cx="582" cy="460" r="140" fill="none" stroke="white" stroke-width="13" opacity="0.50"/>
-  <circle cx="582" cy="460" r="210" fill="none" stroke="white" stroke-width="10" opacity="0.30"/>
+  <!-- Ripple rings centered at icon center -->
+  <circle cx="512" cy="460" r="70" fill="none" stroke="white" stroke-width="16" opacity="0.75"/>
+  <circle cx="512" cy="460" r="140" fill="none" stroke="white" stroke-width="13" opacity="0.50"/>
+  <circle cx="512" cy="460" r="210" fill="none" stroke="white" stroke-width="10" opacity="0.30"/>
 
-  <!-- Touch point dot -->
-  <circle cx="582" cy="460" r="12" fill="white" opacity="0.95"/>
+  <!-- Touch point dot at center -->
+  <circle cx="512" cy="460" r="12" fill="white" opacity="0.95"/>
 
-  <!-- Lucide "hand" icon (ISC license), fingers up, coming from bottom -->
-  <!-- 20% smaller: s=14.4. Middle fingertip (12,2) at (582,460). -->
-  <!-- tx=582-12*14.4=409.2, ty=460-2*14.4=431.2 -->
-  <g transform="translate(409.2, 431.2) scale(14.4)"
-     fill="none" stroke="white" stroke-width="2"
-     stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
-    <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
-    <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
-    <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
-    <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+  <!-- Lucide "hand" icon, offset right and rotated to point toward center -->
+  <!-- Hand at (582,460), rotated -15deg around fingertip so finger aims at center -->
+  <g transform="rotate(-15, 582, 460)">
+    <g transform="translate(409.2, 431.2) scale(14.4)"
+       fill="none" stroke="white" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+      <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
+      <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
+      <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
+      <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+    </g>
   </g>
 
   <!-- Prohibition circle (thicker) -->
