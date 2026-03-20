@@ -7,12 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- About window showing app icon, version, build number, copyright, and GitHub link
+
 ### Fixed
 - Release script not passing Developer ID signing identity to xcodebuild (fell back to Apple Development, causing Gatekeeper rejection)
 - Release DMG not codesigned (notarization requires both the app and DMG to be signed)
 - Release script reporting notarization success on "Invalid" status (notarytool returns exit 0 even on rejection; now checks actual status output and auto-fetches rejection log)
 - Notarization rejection: Sparkle framework binaries bundled unsigned (removed unused Sparkle SPM dependency; will re-add when wiring up updates)
 - Notarization rejection: com.apple.security.get-task-allow entitlement auto-injected into release builds (disabled CODE_SIGN_INJECT_BASE_ENTITLEMENTS for release)
+- Version numbers out of sync between Info.plist and release tag (release script now updates CFBundleShortVersionString, CFBundleVersion, and MARKETING_VERSION from the tag)
 
 ## [1.0.1] - 2026-03-20
 
