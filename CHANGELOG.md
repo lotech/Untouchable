@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-03-21
+
 ### Added
 - About window showing app icon, version, build number, copyright, and GitHub link
 - Entitlements verification step in release script (rejects get-task-allow before notarization)
