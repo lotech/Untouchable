@@ -12,10 +12,10 @@ import os
 SVG_ICON = r"""<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
-    <!-- Background gradient: darker deep purple to dark blue -->
+    <!-- Background gradient: black to dark blue -->
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#2A0080"/>
-      <stop offset="100%" stop-color="#0A4494"/>
+      <stop offset="0%" stop-color="#000000"/>
+      <stop offset="100%" stop-color="#0A2E6E"/>
     </linearGradient>
 
     <!-- Subtle inner glow for depth -->
@@ -37,24 +37,26 @@ SVG_ICON = r"""<?xml version="1.0" encoding="UTF-8"?>
   <!-- Inner glow overlay -->
   <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228" fill="url(#glow)"/>
 
-  <!-- Lucide "pointer" hand icon (ISC license) scaled from 24x24 viewBox -->
-  <g transform="translate(290, 140) scale(19)"
-     fill="none" stroke="white" stroke-width="2"
+  <!-- Ripple rings centered at fingertip touch point -->
+  <circle cx="512" cy="460" r="70" fill="none" stroke="white" stroke-width="18" opacity="0.50"/>
+  <circle cx="512" cy="460" r="140" fill="none" stroke="white" stroke-width="14" opacity="0.30"/>
+  <circle cx="512" cy="460" r="210" fill="none" stroke="white" stroke-width="12" opacity="0.16"/>
+
+  <!-- Touch point dot -->
+  <circle cx="512" cy="460" r="14" fill="white" opacity="0.95"/>
+
+  <!-- Lucide "hand" icon (ISC license), fingers up, coming from bottom -->
+  <!-- Middle fingertip at (12,2) in 24-unit space. Want it at (512,460). -->
+  <!-- s=18: tx=512-12*18=296, ty=460-2*18=424 -->
+  <!-- Palm extends to: 424+22*18=820, within icon bounds -->
+  <g transform="translate(296, 424) scale(18)"
+     fill="none" stroke="white" stroke-width="2.2"
      stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
-    <path d="M22 14a8 8 0 0 1-8 8"/>
-    <path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
-    <path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1"/>
-    <path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10"/>
-    <path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+    <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
+    <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
+    <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
+    <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
   </g>
-
-  <!-- Touch point below the hand fingertip -->
-  <circle cx="512" cy="480" r="16" fill="white" opacity="0.95"/>
-
-  <!-- Touch ripple rings radiating from touch point -->
-  <circle cx="512" cy="560" r="80" fill="none" stroke="white" stroke-width="18" opacity="0.55"/>
-  <circle cx="512" cy="560" r="150" fill="none" stroke="white" stroke-width="14" opacity="0.32"/>
-  <circle cx="512" cy="560" r="220" fill="none" stroke="white" stroke-width="12" opacity="0.18"/>
 
   <!-- Prohibition circle (thicker) -->
   <circle cx="512" cy="512" r="340" fill="none" stroke="url(#slashGrad)" stroke-width="68" opacity="0.92"/>
