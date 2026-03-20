@@ -45,10 +45,10 @@ SVG_ICON = r"""<?xml version="1.0" encoding="UTF-8"?>
   <!-- Touch point dot at center -->
   <circle cx="512" cy="460" r="12" fill="white" opacity="0.95"/>
 
-  <!-- Lucide "hand" icon, offset right and rotated to point toward center -->
-  <!-- Hand at (582,460), rotated -15deg around fingertip so finger aims at center -->
-  <g transform="rotate(-15, 582, 460)">
-    <g transform="translate(409.2, 431.2) scale(14.4)"
+  <!-- Lucide "hand" icon, offset right+down and rotated to point toward center -->
+  <!-- Hand shifted 15% down (154px). Rotation pivot follows to (582,614) -->
+  <g transform="rotate(-15, 582, 614)">
+    <g transform="translate(409.2, 585.2) scale(14.4)"
        fill="none" stroke="white" stroke-width="2"
        stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
       <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
