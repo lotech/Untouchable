@@ -47,5 +47,6 @@ Pods/
 
 # Sparkle
 *.delta
-*.xml
+appcast.xml
 dsa_priv.pem
+eddsa_priv.pem

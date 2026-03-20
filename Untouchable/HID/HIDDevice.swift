@@ -1,4 +1,5 @@
 import Foundation
+import IOKit.hid
 
 /// Represents a single HID pointing device discovered by `IOHIDManager`.
 ///
@@ -22,9 +23,27 @@ struct HIDDevice: Identifiable, Hashable {
     /// Whether the user has chosen to suppress all events from this device.
     var isBlocked: Bool
 
-    /// The underlying `IOHIDDevice` reference. Nil when the device is no longer
-    /// connected. Not included in Hashable/Equatable conformance.
-    var ioHIDDevice: Any?
+    /// The underlying `IOHIDDevice` reference. Nil when the device is no longer connected.
+    var ioHIDDevice: IOHIDDevice?
+
+    // MARK: - Convenience init from IOHIDDevice
+
+    /// Creates an `HIDDevice` from a raw `IOHIDDevice` reference.
+    init?(from device: IOHIDDevice, isBlocked: Bool = false) {
+        guard let vendorID = IOHIDDeviceGetProperty(device, kIOHIDVendorIDKey as CFString) as? Int,
+              let productID = IOHIDDeviceGetProperty(device, kIOHIDProductIDKey as CFString) as? Int else {
+            return nil
+        }
+
+        let name = IOHIDDeviceGetProperty(device, kIOHIDProductKey as CFString) as? String
+            ?? "Unknown Device"
+
+        self.vendorID = vendorID
+        self.productID = productID
+        self.name = name
+        self.isBlocked = isBlocked
+        self.ioHIDDevice = device
+    }
 
     // MARK: - Hashable
 
