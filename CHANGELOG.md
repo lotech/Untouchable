@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Release script not passing Developer ID signing identity to xcodebuild (fell back to Apple Development, causing Gatekeeper rejection)
 - Release DMG not codesigned (notarization requires both the app and DMG to be signed)
+- Release script reporting notarization success on "Invalid" status (notarytool returns exit 0 even on rejection; now checks actual status output and auto-fetches rejection log)
 
 ## [1.0.1] - 2026-03-20
 
