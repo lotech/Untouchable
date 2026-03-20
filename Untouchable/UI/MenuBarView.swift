@@ -19,7 +19,7 @@ struct MenuBarView: View {
             }
         }
 
-        // Virtual devices in a submenu
+        // Virtual devices in a submenu (already deduplicated by manager)
         let virtual = deviceManager.virtualDevices
         if !virtual.isEmpty {
             Menu("Other Devices (\(virtual.count))") {

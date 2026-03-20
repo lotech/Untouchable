@@ -13,14 +13,26 @@ final class HIDDeviceManager: ObservableObject {
     /// All currently connected HID pointing devices.
     @Published var devices: [HIDDevice] = []
 
-    /// Physical (non-virtual) devices, sorted by name.
+    /// Physical devices grouped by persistenceID -- one entry per physical device.
     var physicalDevices: [HIDDevice] {
-        devices.filter { !$0.isVirtual }.sorted { $0.name < $1.name }
+        uniqueByPersistenceID(devices.filter { !$0.isVirtual })
     }
 
-    /// Virtual/software devices, sorted by name.
+    /// Virtual devices grouped by persistenceID -- one entry per logical device.
     var virtualDevices: [HIDDevice] {
-        devices.filter { $0.isVirtual }.sorted { $0.name < $1.name }
+        uniqueByPersistenceID(devices.filter { $0.isVirtual })
+    }
+
+    /// Returns one representative device per persistenceID, sorted by name.
+    private func uniqueByPersistenceID(_ list: [HIDDevice]) -> [HIDDevice] {
+        var seen = Set<String>()
+        var result: [HIDDevice] = []
+        for device in list.sorted(by: { $0.name < $1.name }) {
+            if seen.insert(device.persistenceID).inserted {
+                result.append(device)
+            }
+        }
+        return result
     }
 
     // MARK: - Private
