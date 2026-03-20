@@ -5,34 +5,47 @@ import os
 
 private let logger = Logger(subsystem: "vision.lotech.Untouchable", category: "HIDDeviceManager")
 
+/// A grouped device representing one physical device (one or more HID interfaces).
+struct DeviceGroup: Identifiable {
+    /// The persistence key: "vendorID:productID"
+    let id: String
+    let name: String
+    let isVirtual: Bool
+    var isBlocked: Bool
+}
+
 /// Manages HID device enumeration and publishes the current device list.
 final class HIDDeviceManager: ObservableObject {
 
     // MARK: - Published State
 
-    /// All currently connected HID pointing devices.
+    /// All currently connected HID interfaces (multiple per physical device).
     @Published var devices: [HIDDevice] = []
 
-    /// Physical devices grouped by persistenceID -- one entry per physical device.
-    var physicalDevices: [HIDDevice] {
-        uniqueByPersistenceID(devices.filter { !$0.isVirtual })
+    /// Physical devices, one row per vendor:product.
+    var physicalDeviceGroups: [DeviceGroup] {
+        groupedDevices(from: devices.filter { !$0.isVirtual })
     }
 
-    /// Virtual devices grouped by persistenceID -- one entry per logical device.
-    var virtualDevices: [HIDDevice] {
-        uniqueByPersistenceID(devices.filter { $0.isVirtual })
+    /// Virtual devices, one row per vendor:product.
+    var virtualDeviceGroups: [DeviceGroup] {
+        groupedDevices(from: devices.filter { $0.isVirtual })
     }
 
-    /// Returns one representative device per persistenceID, sorted by name.
-    private func uniqueByPersistenceID(_ list: [HIDDevice]) -> [HIDDevice] {
-        var seen = Set<String>()
-        var result: [HIDDevice] = []
-        for device in list.sorted(by: { $0.name < $1.name }) {
-            if seen.insert(device.persistenceID).inserted {
-                result.append(device)
+    private func groupedDevices(from list: [HIDDevice]) -> [DeviceGroup] {
+        var groups: [String: DeviceGroup] = [:]
+        for device in list {
+            let pid = device.persistenceID
+            if groups[pid] == nil {
+                groups[pid] = DeviceGroup(
+                    id: pid,
+                    name: device.name,
+                    isVirtual: device.isVirtual,
+                    isBlocked: device.isBlocked
+                )
             }
         }
-        return result
+        return groups.values.sorted { $0.name < $1.name }
     }
 
     // MARK: - Private
@@ -111,6 +124,7 @@ final class HIDDeviceManager: ObservableObject {
         let blocked = appSettings?.isBlocked(persistID) ?? false
         guard let hidDevice = HIDDevice(from: device, isBlocked: blocked) else { return }
 
+        // Deduplicate by unique instance ID
         if !devices.contains(where: { $0.id == hidDevice.id }) {
             devices.append(hidDevice)
             logger.info("Device connected: \(hidDevice.name, privacy: .private) (\(hidDevice.id, privacy: .private)) virtual=\(hidDevice.isVirtual)")
@@ -122,7 +136,6 @@ final class HIDDeviceManager: ObservableObject {
     }
 
     private func deviceDisconnected(_ device: IOHIDDevice) {
-        // Find by IOHIDDevice reference since the device is being removed
         if let index = devices.firstIndex(where: { $0.ioHIDDevice == device }) {
             let removed = devices.remove(at: index)
             suppressor.releaseByID(removed.id)
@@ -138,19 +151,32 @@ final class HIDDeviceManager: ObservableObject {
 
     // MARK: - Public API
 
+    /// Replaces the device list from a fresh IOHIDManager query.
+    /// Merges with existing entries to preserve IOHIDDevice references from callbacks.
     func refreshDevices() {
         guard let manager = manager else { return }
         guard let deviceSet = IOHIDManagerCopyDevices(manager) as? Set<IOHIDDevice> else { return }
 
-        var newDevices: [HIDDevice] = []
+        // Build a set of IDs we already track
+        var existingByID: [String: HIDDevice] = [:]
+        for d in devices { existingByID[d.id] = d }
+
+        var merged: [HIDDevice] = []
         for ioDevice in deviceSet {
             let blocked = appSettings?.isBlocked(persistenceID(for: ioDevice)) ?? false
             if let device = HIDDevice(from: ioDevice, isBlocked: blocked) {
-                newDevices.append(device)
+                // Keep existing entry if we already have it (preserves ioHIDDevice ref)
+                if let existing = existingByID[device.id] {
+                    var updated = existing
+                    updated.isBlocked = blocked
+                    merged.append(updated)
+                } else {
+                    merged.append(device)
+                }
             }
         }
 
-        devices = newDevices
+        devices = merged
     }
 
     private func reapplyBlockedDevices() {
@@ -159,18 +185,13 @@ final class HIDDeviceManager: ObservableObject {
         }
     }
 
-    /// Toggles the blocked state for a device. Blocks/unblocks ALL interfaces
-    /// sharing the same persistenceID (vendor:product).
-    func toggleBlocked(for device: HIDDevice) {
-        let newBlocked: Bool
-        if let index = devices.firstIndex(where: { $0.id == device.id }) {
-            newBlocked = !devices[index].isBlocked
-        } else {
-            return
-        }
+    /// Toggles the blocked state for all interfaces sharing the given persistenceID.
+    func toggleBlocked(forPersistenceID persistenceID: String) {
+        // Determine new state from the first matching device
+        guard let first = devices.first(where: { $0.persistenceID == persistenceID }) else { return }
+        let newBlocked = !first.isBlocked
 
-        // Apply to all interfaces with the same vendor:product
-        for i in devices.indices where devices[i].persistenceID == device.persistenceID {
+        for i in devices.indices where devices[i].persistenceID == persistenceID {
             devices[i].isBlocked = newBlocked
             if newBlocked {
                 suppressor.seize(devices[i])
