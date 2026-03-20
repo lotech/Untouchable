@@ -12,15 +12,15 @@ import os
 SVG_ICON = r"""<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
-    <!-- Background gradient: deep indigo to vibrant blue -->
+    <!-- Background gradient: darker deep purple to dark blue -->
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#4A00E0"/>
-      <stop offset="100%" stop-color="#1E90FF"/>
+      <stop offset="0%" stop-color="#2A0080"/>
+      <stop offset="100%" stop-color="#0A4494"/>
     </linearGradient>
 
     <!-- Subtle inner glow for depth -->
     <radialGradient id="glow" cx="0.4" cy="0.35" r="0.65">
-      <stop offset="0%" stop-color="rgba(255,255,255,0.15)"/>
+      <stop offset="0%" stop-color="rgba(255,255,255,0.10)"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
     </radialGradient>
 
@@ -37,20 +37,28 @@ SVG_ICON = r"""<?xml version="1.0" encoding="UTF-8"?>
   <!-- Inner glow overlay -->
   <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228" fill="url(#glow)"/>
 
-  <!-- Touch point: center dot -->
-  <circle cx="512" cy="480" r="52" fill="white" opacity="0.95"/>
+  <!-- Hand/finger pointing down to touch point -->
+  <!-- Finger (index finger shape pointing down) -->
+  <rect x="488" y="200" width="48" height="180" rx="24" ry="24" fill="white" opacity="0.9"/>
+  <!-- Fingertip bulge -->
+  <ellipse cx="512" cy="390" rx="34" ry="22" fill="white" opacity="0.9"/>
+  <!-- Palm/knuckle area -->
+  <ellipse cx="512" cy="205" rx="52" ry="30" fill="white" opacity="0.85"/>
 
-  <!-- Touch ripple rings (concentric, fading outward) -->
-  <circle cx="512" cy="480" r="120" fill="none" stroke="white" stroke-width="24" opacity="0.7"/>
-  <circle cx="512" cy="480" r="200" fill="none" stroke="white" stroke-width="20" opacity="0.45"/>
-  <circle cx="512" cy="480" r="280" fill="none" stroke="white" stroke-width="16" opacity="0.25"/>
+  <!-- Touch point where finger meets surface -->
+  <circle cx="512" cy="440" r="18" fill="white" opacity="0.95"/>
 
-  <!-- Prohibition circle -->
-  <circle cx="512" cy="512" r="340" fill="none" stroke="url(#slashGrad)" stroke-width="52" opacity="0.92"/>
+  <!-- Touch ripple rings radiating from touch point -->
+  <circle cx="512" cy="500" r="90" fill="none" stroke="white" stroke-width="20" opacity="0.65"/>
+  <circle cx="512" cy="500" r="160" fill="none" stroke="white" stroke-width="16" opacity="0.40"/>
+  <circle cx="512" cy="500" r="235" fill="none" stroke="white" stroke-width="14" opacity="0.22"/>
 
-  <!-- Prohibition slash (diagonal line from top-right to bottom-left) -->
+  <!-- Prohibition circle (thicker) -->
+  <circle cx="512" cy="512" r="340" fill="none" stroke="url(#slashGrad)" stroke-width="68" opacity="0.92"/>
+
+  <!-- Prohibition slash (thicker, diagonal from top-right to bottom-left) -->
   <line x1="752" y1="272" x2="272" y2="752"
-        stroke="url(#slashGrad)" stroke-width="52" stroke-linecap="round" opacity="0.92"/>
+        stroke="url(#slashGrad)" stroke-width="68" stroke-linecap="round" opacity="0.92"/>
 </svg>
 """
 
