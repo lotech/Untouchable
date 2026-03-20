@@ -155,12 +155,17 @@ check_changelog() {
     if grep -q "## \[$version\]" "$REPO_ROOT/CHANGELOG.md" 2>/dev/null; then
         success "CHANGELOG.md has entry for [$version]."
     elif grep -q "## \[Unreleased\]" "$REPO_ROOT/CHANGELOG.md" 2>/dev/null; then
-        warn "CHANGELOG.md has [Unreleased] but no [$version] section."
-        echo "      Fix: Move [Unreleased] entries to [$version] - $(date +%Y-%m-%d)"
-        echo "           before creating the release."
-        if ! ask_yn "Continue anyway?" "n"; then
-            preflight_passed=false
-        fi
+        log "Moving [Unreleased] entries to [$version] - $(date +%Y-%m-%d)..."
+        local changelog="$REPO_ROOT/CHANGELOG.md"
+        local today
+        today="$(date +%Y-%m-%d)"
+        # Rename [Unreleased] to [version] - date
+        sed -i '' "s/## \[Unreleased\]/## [$version] - $today/" "$changelog"
+        # Insert a fresh [Unreleased] section above the new versioned section
+        sed -i '' "/## \[$version\] - $today/i\\
+## [Unreleased]\\
+" "$changelog"
+        success "CHANGELOG.md updated: [Unreleased] -> [$version] - $today"
     else
         warn "No changelog entry found for $version."
     fi
@@ -510,12 +515,15 @@ create_github_release() {
         return 0
     fi
 
-    # Commit the version bump so the tagged commit has correct version numbers
-    if [[ -n "$(git diff --name-only Untouchable/Info.plist 2>/dev/null)" ]]; then
-        log "Committing version bump..."
-        git add Untouchable/Info.plist
-        git commit -m "Bump version to ${tag#v} for release $tag"
-        success "Version bump committed."
+    # Commit version bump and changelog so the tagged commit is complete
+    local release_files=()
+    [[ -n "$(git diff --name-only Untouchable/Info.plist 2>/dev/null)" ]] && release_files+=("Untouchable/Info.plist")
+    [[ -n "$(git diff --name-only CHANGELOG.md 2>/dev/null)" ]] && release_files+=("CHANGELOG.md")
+    if [[ ${#release_files[@]} -gt 0 ]]; then
+        log "Committing release changes..."
+        git add "${release_files[@]}"
+        git commit -m "Prepare release ${tag#v}"
+        success "Release changes committed."
     fi
 
     log "Creating git tag $tag..."

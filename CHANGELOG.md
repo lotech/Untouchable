@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Seizures silently lost after system sleep/wake: IOKit releases exclusive device access when hardware powers down but fires no callbacks; now re-seizes all blocked devices on NSWorkspace.didWakeNotification
 - Blocked devices not re-seized on launch until user opens the menu (AppSettings was nil during initial IOHIDManager matching callbacks)
 - Release script leaving Info.plist version bump uncommitted, causing dirty working tree after release (now commits the version bump before tagging)
+- Release script requiring manual CHANGELOG.md update before release (now automatically moves [Unreleased] to versioned section)
 - Release script not passing Developer ID signing identity to xcodebuild (fell back to Apple Development, causing Gatekeeper rejection)
 - Release DMG not codesigned (notarization requires both the app and DMG to be signed)
 - Release script reporting notarization success on "Invalid" status (notarytool returns exit 0 even on rejection; now checks actual status output and auto-fetches rejection log)
