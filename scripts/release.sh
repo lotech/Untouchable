@@ -295,6 +295,18 @@ verify_signing() {
         echo "      Fix: Enable 'Hardened Runtime' in Xcode signing settings."
     fi
 
+    # Verify no unexpected entitlements (e.g. get-task-allow blocks notarization)
+    local entitlements
+    entitlements="$(codesign -d --entitlements - "$app" 2>&1 || true)"
+    if echo "$entitlements" | grep -q "get-task-allow"; then
+        fail "com.apple.security.get-task-allow entitlement found in release build."
+        echo "      This entitlement is auto-injected for debug builds and will cause"
+        echo "      notarization rejection."
+        echo "      Fix: Ensure CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO in build settings."
+        return 1
+    fi
+    success "No unexpected entitlements found."
+
     # Verify embedded version matches release tag
     if [[ -n "${RELEASE_VERSION:-}" ]]; then
         local embedded_ver

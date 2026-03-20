@@ -57,13 +57,11 @@ struct MenuBarView: View {
     private func deviceToggle(for group: DeviceGroup) -> some View {
         Toggle(isOn: Binding(
             get: {
-                // Read blocked state from any interface in this group
                 deviceManager.devices.first(where: { $0.persistenceID == group.id })?.isBlocked ?? false
             },
-            set: { _ in
+            set: { newValue in
                 deviceManager.toggleBlocked(forPersistenceID: group.id)
-                let isBlocked = deviceManager.devices.first(where: { $0.persistenceID == group.id })?.isBlocked ?? false
-                appSettings.setBlocked(isBlocked, forDeviceID: group.id)
+                appSettings.setBlocked(newValue, forDeviceID: group.id)
             }
         )) {
             Text(group.name)

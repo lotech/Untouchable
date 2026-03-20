@@ -75,11 +75,14 @@ do_install() {
 
     # Quit the running app if present
     osascript -e 'tell application "Untouchable" to quit' 2>/dev/null || true
-    sleep 1
 
-    # Force-kill if still running (osascript may not work for LSUIElement apps)
+    # Wait for process to exit (up to 3 seconds), then force-kill if needed
+    local waited=0
+    while pgrep -x Untouchable >/dev/null 2>&1 && [[ $waited -lt 6 ]]; do
+        sleep 0.5
+        waited=$((waited + 1))
+    done
     pkill -x Untouchable 2>/dev/null || true
-    sleep 0.5
 
     if [[ -w "$INSTALL_DIR" ]]; then
         rm -rf "$INSTALL_DIR/$APP_NAME"
