@@ -1,4 +1,5 @@
 import Foundation
+import Cocoa
 import Combine
 import IOKit.hid
 import os
@@ -62,6 +63,7 @@ final class HIDDeviceManager: ObservableObject {
     init(settings: AppSettings) {
         self.appSettings = settings
         setupManager()
+        observeSystemWake()
     }
 
     deinit {
@@ -71,6 +73,25 @@ final class HIDDeviceManager: ObservableObject {
             IOHIDManagerClose(manager, IOOptionBits(kIOHIDOptionsTypeNone))
         }
         retainedSelf?.release()
+    }
+
+    /// Re-seizes all blocked devices after the system wakes from sleep.
+    ///
+    /// IOKit can silently lose device seizures when hardware powers down
+    /// during sleep. No callbacks fire to inform the app, so we must
+    /// proactively re-establish exclusive ownership on wake.
+    private func observeSystemWake() {
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            logger.info("System wake detected -- re-seizing blocked devices")
+            self.suppressor.reseizeAll()
+            self.refreshDevices()
+            self.reapplyBlockedDevices()
+        }
     }
 
     private func setupManager() {
