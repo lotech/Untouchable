@@ -45,16 +45,17 @@ SVG_ICON = r"""<?xml version="1.0" encoding="UTF-8"?>
   <!-- Touch point dot at center -->
   <circle cx="512" cy="460" r="12" fill="white" opacity="0.95"/>
 
-  <!-- Lucide "hand" icon, offset right+down and rotated to point toward center -->
-  <!-- Hand shifted 15% down (154px). Rotation pivot follows to (582,614) -->
-  <g transform="rotate(-15, 582, 614)">
-    <g transform="translate(409.2, 585.2) scale(14.4)"
+  <!-- Lucide "pointer" icon, offset right+down and rotated to point toward center -->
+  <!-- Pointer shifted 7.5% down (77px). Rotation pivot at (582,537) -->
+  <g transform="rotate(-15, 582, 537)">
+    <g transform="translate(409.2, 508) scale(14.4)"
        fill="none" stroke="white" stroke-width="2"
        stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
-      <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
-      <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
-      <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
-      <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+      <path d="M22 14a8 8 0 0 1-8 8"/>
+      <path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
+      <path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1"/>
+      <path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10"/>
+      <path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
     </g>
   </g>
 
