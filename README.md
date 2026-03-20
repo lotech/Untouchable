@@ -28,8 +28,7 @@ Untouchable sits in your menu bar and lists every HID pointing device connected 
 - Auto-reapplies suppression when a previously-blocked device reconnects
 - Live connect/disconnect detection
 - Runs silently in the menu bar (no Dock icon, no window)
-- Launch at Login via `SMAppService`
-- Sparkle update framework included (not yet wired)
+- Launch at Login support.
 
 ## Install
 
