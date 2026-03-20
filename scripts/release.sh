@@ -510,13 +510,21 @@ create_github_release() {
         return 0
     fi
 
+    # Commit the version bump so the tagged commit has correct version numbers
+    if [[ -n "$(git diff --name-only Untouchable/Info.plist 2>/dev/null)" ]]; then
+        log "Committing version bump..."
+        git add Untouchable/Info.plist
+        git commit -m "Bump version to ${tag#v} for release $tag"
+        success "Version bump committed."
+    fi
+
     log "Creating git tag $tag..."
     git tag -a "$tag" -m "Release $tag"
     success "Tag created."
 
-    log "Pushing tag to origin..."
-    git push origin "$tag"
-    success "Tag pushed."
+    log "Pushing commits and tag to origin..."
+    git push origin HEAD "$tag"
+    success "Pushed."
 
     log "Creating GitHub Release..."
     gh release create "$tag" \
