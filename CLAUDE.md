@@ -15,7 +15,7 @@ Untouchable is a macOS 13+ menu bar app (SwiftUI MenuBarExtra) that enumerates H
 - **HID layer**: IOKit -> IOHIDManager for enumeration, IOHIDDeviceOpen with kIOHIDOptionsTypeSeizeDevice for suppression
 - **Persistence**: UserDefaults, blocked devices stored as ["vendorID:productID"]
 - **Login item**: SMAppService.mainApp
-- **Updates**: Sparkle 2.x (SPM dependency, stub only -- not wired yet)
+- **Updates**: Sparkle 2.x (stub only -- dependency removed until wired up)
 - **Logging**: os.Logger with privacy annotations (never print())
 
 ## Architecture
