@@ -75,6 +75,10 @@ do_install() {
 
     # Quit the running app if present
     osascript -e 'tell application "Untouchable" to quit' 2>/dev/null || true
+    sleep 1
+
+    # Force-kill if still running (osascript may not work for LSUIElement apps)
+    pkill -x Untouchable 2>/dev/null || true
     sleep 0.5
 
     if [[ -w "$INSTALL_DIR" ]]; then
@@ -84,6 +88,13 @@ do_install() {
         sudo rm -rf "$INSTALL_DIR/$APP_NAME"
         sudo cp -R "$APP_PATH" "$INSTALL_DIR/$APP_NAME"
     fi
+
+    # Remove quarantine flag so Gatekeeper does not silently block a menu bar app
+    xattr -dr com.apple.quarantine "$INSTALL_DIR/$APP_NAME" 2>/dev/null || true
+
+    # Reset Launch Services so macOS picks up the new binary
+    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
+        -f "$INSTALL_DIR/$APP_NAME" 2>/dev/null || true
 
     success "Installed to $INSTALL_DIR/$APP_NAME"
 }
