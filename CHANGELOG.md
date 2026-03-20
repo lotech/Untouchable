@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Duplicate devices with same vendor:product pair collapsing into one entry
 
 ### Added
+- App icon: touch-ripple with prohibition slash on indigo-blue gradient, all macOS sizes (16-1024px)
 - Installed vibe-security skill for automated security auditing (`.claude/skills/vibe-security/`)
 - AccentColor asset to fix Xcode warning
 

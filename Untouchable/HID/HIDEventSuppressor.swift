@@ -37,6 +37,10 @@ final class HIDEventSuppressor {
 
             seizedDevices[device.id] = ioDevice
             logger.info("Seized device: \(device.name, privacy: .private) (\(device.id, privacy: .private))")
+        } else if result == -536870174 {
+            // TCC denied -- expected for some HID interfaces that macOS restricts.
+            // The primary touch interface is usually seized successfully.
+            logger.debug("TCC denied seize for \(device.name, privacy: .private) interface \(device.id, privacy: .private) -- expected for secondary interfaces")
         } else {
             logger.error("Failed to seize \(device.name, privacy: .private): IOReturn \(result)")
         }
