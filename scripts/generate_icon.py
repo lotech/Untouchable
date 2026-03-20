@@ -9,6 +9,21 @@ import os
 # Clean, bold, simple -- works at 16px and 1024px. Follows macOS 26 guidelines:
 # high contrast, no text, clear silhouette, bold shapes for Liquid Glass.
 
+# Lucide "pointer-off" icon as a macOS menu bar template image.
+# Template images must be black + alpha only; macOS handles light/dark appearance.
+SVG_MENUBAR = r"""<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+     fill="none" stroke="black" stroke-width="2"
+     stroke-linecap="round" stroke-linejoin="round">
+  <path d="M10 4.5V4a2 2 0 0 0-2.41-1.957"/>
+  <path d="M13.9 8.4a2 2 0 0 0-1.26-1.295"/>
+  <path d="M21.7 16.2A8 8 0 0 0 22 14v-3a2 2 0 1 0-4 0v-1a2 2 0 0 0-3.63-1.158"/>
+  <path d="m7 15-1.8-1.8a2 2 0 0 0-2.79 2.86L6 19.7a7.74 7.74 0 0 0 6 2.3h2a8 8 0 0 0 5.657-2.343"/>
+  <path d="M6 6v8"/>
+  <path d="m2 2 20 20"/>
+</svg>
+"""
+
 SVG_ICON = r"""<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
@@ -118,6 +133,41 @@ def main():
         output_height=256,
     )
     print(f"  icon.png (256x256px for README)")
+
+    # Generate menu bar template icon (pointer-off)
+    menubar_dir = os.path.join(
+        project_root, "Untouchable", "Assets.xcassets", "MenuBarIcon.imageset"
+    )
+    os.makedirs(menubar_dir, exist_ok=True)
+
+    for scale in (1, 2, 3):
+        pixel_size = 16 * scale
+        suffix = "" if scale == 1 else f"@{scale}x"
+        filename = f"menubar_icon{suffix}.png"
+        output_path = os.path.join(menubar_dir, filename)
+        cairosvg.svg2png(
+            bytestring=SVG_MENUBAR.encode("utf-8"),
+            write_to=output_path,
+            output_width=pixel_size,
+            output_height=pixel_size,
+        )
+        print(f"  {filename} ({pixel_size}x{pixel_size}px)")
+
+    # Write imageset Contents.json (template rendering mode)
+    import json
+    contents = {
+        "images": [
+            {"filename": "menubar_icon.png", "idiom": "universal", "scale": "1x"},
+            {"filename": "menubar_icon@2x.png", "idiom": "universal", "scale": "2x"},
+            {"filename": "menubar_icon@3x.png", "idiom": "universal", "scale": "3x"},
+        ],
+        "info": {"author": "xcode", "version": 1},
+        "properties": {"template-rendering-intent": "template"},
+    }
+    with open(os.path.join(menubar_dir, "Contents.json"), "w") as f:
+        json.dump(contents, f, indent=2)
+        f.write("\n")
+    print(f"  Contents.json (menu bar imageset)")
 
     print(f"\nAll icons written to {icon_dir}")
 
