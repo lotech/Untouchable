@@ -206,9 +206,34 @@ run_preflight() {
     echo ""
 }
 
+# -- Version sync ----------------------------------------------------------
+
+set_version() {
+    local tag="$1"
+    local version="${tag#v}"
+
+    log "Syncing version to $version..."
+
+    local plist="$REPO_ROOT/Untouchable/Info.plist"
+
+    # Update CFBundleShortVersionString in Info.plist
+    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $version" "$plist" 2>/dev/null || \
+        plutil -replace CFBundleShortVersionString -string "$version" "$plist"
+
+    # Increment CFBundleVersion (build number) based on git commit count
+    local build_number
+    build_number="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
+    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $build_number" "$plist" 2>/dev/null || \
+        plutil -replace CFBundleVersion -string "$build_number" "$plist"
+
+    success "Info.plist: $version ($build_number)"
+}
+
 # -- Build -----------------------------------------------------------------
 
 do_release_build() {
+    local version="${RELEASE_VERSION:-}"
+
     log "Resolving Swift package dependencies..."
     xcodebuild -resolvePackageDependencies \
         -project "$PROJECT" \
@@ -227,7 +252,8 @@ do_release_build() {
         CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
         DEVELOPMENT_TEAM="$TEAM_ID" \
         OTHER_CODE_SIGN_FLAGS="--timestamp" \
-        CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO
+        CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO \
+        ${version:+MARKETING_VERSION="$version"}
 
     APP_PATH="$BUILD_DIR/Build/Products/Release/$APP_NAME"
 
@@ -267,6 +293,19 @@ verify_signing() {
     else
         warn "Hardened runtime not detected. Notarization will fail without it."
         echo "      Fix: Enable 'Hardened Runtime' in Xcode signing settings."
+    fi
+
+    # Verify embedded version matches release tag
+    if [[ -n "${RELEASE_VERSION:-}" ]]; then
+        local embedded_ver
+        embedded_ver="$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" \
+            "$app/Contents/Info.plist" 2>/dev/null || echo "?")"
+        if [[ "$embedded_ver" == "$RELEASE_VERSION" ]]; then
+            success "Embedded version: $embedded_ver"
+        else
+            fail "Version mismatch: binary has $embedded_ver, expected $RELEASE_VERSION"
+            return 1
+        fi
     fi
 }
 
@@ -504,6 +543,8 @@ main() {
         --build-only)
             tag="${tag:-v0.0.0-local}"
             run_preflight ""
+            RELEASE_VERSION="${tag#v}"
+            set_version "$tag"
             do_release_build
             verify_signing "$BUILD_DIR/Build/Products/Release/$APP_NAME"
             create_dmg "$BUILD_DIR/Build/Products/Release/$APP_NAME" "$tag"
@@ -517,6 +558,8 @@ main() {
                     "Usage: ./scripts/release.sh --full v1.0.0"
             fi
             run_preflight "$tag"
+            RELEASE_VERSION="${tag#v}"
+            set_version "$tag"
             do_release_build
             verify_signing "$BUILD_DIR/Build/Products/Release/$APP_NAME"
             create_dmg "$BUILD_DIR/Build/Products/Release/$APP_NAME" "$tag"
@@ -550,6 +593,9 @@ main() {
     fi
 
     run_preflight "$tag"
+
+    RELEASE_VERSION="${tag#v}"
+    set_version "$tag"
 
     log "Step 1/5: Build"
     if ask_yn "Build Release configuration?"; then
