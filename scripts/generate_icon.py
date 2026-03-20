@@ -37,20 +37,19 @@ SVG_ICON = r"""<?xml version="1.0" encoding="UTF-8"?>
   <!-- Inner glow overlay -->
   <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228" fill="url(#glow)"/>
 
-  <!-- Ripple rings centered at fingertip touch point -->
-  <circle cx="512" cy="460" r="70" fill="none" stroke="white" stroke-width="18" opacity="0.50"/>
-  <circle cx="512" cy="460" r="140" fill="none" stroke="white" stroke-width="14" opacity="0.30"/>
-  <circle cx="512" cy="460" r="210" fill="none" stroke="white" stroke-width="12" opacity="0.16"/>
+  <!-- Ripple rings centered at fingertip touch point (brighter for dark bg) -->
+  <circle cx="512" cy="460" r="70" fill="none" stroke="white" stroke-width="16" opacity="0.75"/>
+  <circle cx="512" cy="460" r="140" fill="none" stroke="white" stroke-width="13" opacity="0.50"/>
+  <circle cx="512" cy="460" r="210" fill="none" stroke="white" stroke-width="10" opacity="0.30"/>
 
   <!-- Touch point dot -->
-  <circle cx="512" cy="460" r="14" fill="white" opacity="0.95"/>
+  <circle cx="512" cy="460" r="12" fill="white" opacity="0.95"/>
 
   <!-- Lucide "hand" icon (ISC license), fingers up, coming from bottom -->
-  <!-- Middle fingertip at (12,2) in 24-unit space. Want it at (512,460). -->
-  <!-- s=18: tx=512-12*18=296, ty=460-2*18=424 -->
-  <!-- Palm extends to: 424+22*18=820, within icon bounds -->
-  <g transform="translate(296, 424) scale(18)"
-     fill="none" stroke="white" stroke-width="2.2"
+  <!-- 20% smaller: s=14.4. Middle fingertip (12,2) at (512,460). -->
+  <!-- tx=512-12*14.4=339.2, ty=460-2*14.4=431.2 -->
+  <g transform="translate(339.2, 431.2) scale(14.4)"
+     fill="none" stroke="white" stroke-width="2"
      stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
     <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
     <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
