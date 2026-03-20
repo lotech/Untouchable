@@ -212,14 +212,16 @@ do_release_build() {
         -scheme "$SCHEME" \
         -quiet 2>/dev/null || true
 
-    log "Building $SCHEME (Release)..."
+    log "Building $SCHEME (Release) with identity: $SIGNING_IDENTITY..."
     xcodebuild \
         -project "$PROJECT" \
         -scheme "$SCHEME" \
         -configuration Release \
         -derivedDataPath "$BUILD_DIR" \
         -quiet \
-        ONLY_ACTIVE_ARCH=NO
+        ONLY_ACTIVE_ARCH=NO \
+        CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
+        OTHER_CODE_SIGN_FLAGS="--timestamp"
 
     APP_PATH="$BUILD_DIR/Build/Products/Release/$APP_NAME"
 
@@ -299,6 +301,10 @@ create_dmg() {
         die "DMG creation failed." \
             "Check disk space and permissions in $RELEASE_DIR"
     fi
+
+    log "Signing DMG with: $SIGNING_IDENTITY..."
+    codesign --force --sign "$SIGNING_IDENTITY" --timestamp "$dmg_path"
+    success "DMG signed."
 
     local size
     size="$(du -h "$dmg_path" | cut -f1)"
