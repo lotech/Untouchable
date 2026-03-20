@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-03-20
+
 ### Fixed
 - Device disconnect not updating menu when unplugging a monitor/USB device (removal callback matched by object reference instead of device ID)
+- App not launching after install via build script (quarantine xattr, Launch Services cache, LSUIElement quit handling)
 
 ## [1.0.0] - 2026-03-20
 
