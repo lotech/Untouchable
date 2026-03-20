@@ -20,6 +20,8 @@ External touchscreens can send phantom touch events -- ghost taps, erratic curso
 
 Untouchable sits in your menu bar and lists every HID pointing device connected to your Mac. Toggle any device off and its events are completely suppressed at the IOKit level. No phantom touches, no erratic cursor. Toggle it back on and input resumes instantly.
 
+  <img src="UntouchableV1.0.1.jpg" width="256" height="256" alt="Untouchable app">
+
 ## Features
 
 - Enumerates all HID pointing devices (mice, trackpads, touchscreens, digitizers)
