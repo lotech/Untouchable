@@ -1,5 +1,8 @@
 import Foundation
 import IOKit.hid
+import os
+
+private let logger = Logger(subsystem: "vision.lotech.Untouchable", category: "HIDEventSuppressor")
 
 /// Seizes and releases HID devices to suppress their events system-wide.
 ///
@@ -18,7 +21,7 @@ final class HIDEventSuppressor {
     /// Seizes the given device, suppressing all of its HID events.
     func seize(_ device: HIDDevice) {
         guard let ioDevice = device.ioHIDDevice else {
-            print("[Untouchable] Cannot seize \(device.name): no IOHIDDevice ref")
+            logger.warning("Cannot seize \(device.name, privacy: .private): no IOHIDDevice ref")
             return
         }
 
@@ -33,9 +36,9 @@ final class HIDEventSuppressor {
             }, nil)
 
             seizedDevices[device.id] = ioDevice
-            print("[Untouchable] Seized device: \(device.name) (\(device.id))")
+            logger.info("Seized device: \(device.name, privacy: .private) (\(device.id, privacy: .private))")
         } else {
-            print("[Untouchable] Failed to seize \(device.name): IOReturn \(result)")
+            logger.error("Failed to seize \(device.name, privacy: .private): IOReturn \(result)")
         }
     }
 
@@ -50,7 +53,7 @@ final class HIDEventSuppressor {
 
         IOHIDDeviceRegisterInputValueCallback(ioDevice, nil, nil)
         IOHIDDeviceClose(ioDevice, IOOptionBits(kIOHIDOptionsTypeNone))
-        print("[Untouchable] Released device: \(deviceID)")
+        logger.info("Released device: \(deviceID, privacy: .private)")
     }
 
     /// Releases all currently seized devices. Called on app termination.
@@ -58,7 +61,7 @@ final class HIDEventSuppressor {
         for (id, ioDevice) in seizedDevices {
             IOHIDDeviceRegisterInputValueCallback(ioDevice, nil, nil)
             IOHIDDeviceClose(ioDevice, IOOptionBits(kIOHIDOptionsTypeNone))
-            print("[Untouchable] Released device: \(id)")
+            logger.info("Released device: \(id, privacy: .private)")
         }
         seizedDevices.removeAll()
     }

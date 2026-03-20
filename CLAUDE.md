@@ -16,6 +16,7 @@ Untouchable is a macOS 13+ menu bar app (SwiftUI MenuBarExtra) that enumerates H
 - **Persistence**: UserDefaults, blocked devices stored as ["vendorID:productID"]
 - **Login item**: SMAppService.mainApp
 - **Updates**: Sparkle 2.x (SPM dependency, stub only -- not wired yet)
+- **Logging**: os.Logger with privacy annotations (never print())
 
 ## Architecture
 
@@ -41,13 +42,19 @@ Untouchable/
 - HIDEventSuppressor tracks seized devices by ID string; always call releaseAll() on termination
 - Device matching uses multiple criteria: GD_Mouse, GD_Pointer, Dig_TouchScreen, Dig_TouchPad, Dig_Digitizer
 - IOHIDManager callbacks dispatch to main queue before mutating @Published state
-- Unmanaged pointers pass `self` to C callbacks -- must use passUnretained/fromOpaque pattern
+- Unmanaged.passRetained(self) used for C callback context pointer; deinit unschedules run loop before dealloc
 
-## Entitlements
+## Entitlements & Security
 
 - `com.apple.security.device.input-monitoring = YES` (required for HID access)
-- App sandbox is OFF (IOKit HID requires unsandboxed access)
+- **App sandbox is OFF** -- accepted risk: IOKit HID seizure (kIOHIDOptionsTypeSeizeDevice) is incompatible with the macOS app sandbox. Re-evaluate if Apple provides a sandboxed HID API in the future.
 - Hardened runtime enabled
+- No network access, no data collection, no keylogging
+- Sparkle: when wiring up, must use HTTPS SUFeedURL + SUPublicEDKey for EdDSA signature verification
+
+## Skills
+
+- **vibe-security** (`.claude/skills/vibe-security/`): Security audit skill. Run with `/vibe-security` to check for vulnerabilities. Checks secrets, auth, data access, deployment config.
 
 ## Files to Keep Updated
 
@@ -58,5 +65,5 @@ Untouchable/
 
 - Pure ASCII in shell scripts (no Unicode ellipsis, em dashes, etc.)
 - Swift files use `import IOKit.hid` for HID types
-- Console logging uses `print("[Untouchable] ...")` prefix
+- Logging uses `os.Logger` with `privacy: .private` for device info -- never use print()
 - No emoji in code or commit messages
