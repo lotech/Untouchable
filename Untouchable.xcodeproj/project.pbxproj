@@ -13,7 +13,6 @@
 		A10001010000000000000004 /* HIDDeviceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000004 /* HIDDeviceManager.swift */; };
 		A10001010000000000000005 /* HIDEventSuppressor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000005 /* HIDEventSuppressor.swift */; };
 		A10001010000000000000006 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000006 /* MenuBarView.swift */; };
-		A10001010000000000000007 /* DeviceRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000007 /* DeviceRowView.swift */; };
 		A10001010000000000000008 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000008 /* AppSettings.swift */; };
 		A10001010000000000000009 /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000009 /* LoginItemManager.swift */; };
 		A1000101000000000000000A /* UpdaterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000201000000000000000A /* UpdaterManager.swift */; };
@@ -29,7 +28,6 @@
 		A10002010000000000000004 /* HIDDeviceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDDeviceManager.swift; sourceTree = "<group>"; };
 		A10002010000000000000005 /* HIDEventSuppressor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDEventSuppressor.swift; sourceTree = "<group>"; };
 		A10002010000000000000006 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
-		A10002010000000000000007 /* DeviceRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRowView.swift; sourceTree = "<group>"; };
 		A10002010000000000000008 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		A10002010000000000000009 /* LoginItemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemManager.swift; sourceTree = "<group>"; };
 		A1000201000000000000000A /* UpdaterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdaterManager.swift; sourceTree = "<group>"; };
@@ -101,7 +99,6 @@
 			isa = PBXGroup;
 			children = (
 				A10002010000000000000006 /* MenuBarView.swift */,
-				A10002010000000000000007 /* DeviceRowView.swift */,
 				A1000201000000000000010 /* AboutView.swift */,
 			);
 			path = UI;
@@ -224,7 +221,6 @@
 				A10001010000000000000004 /* HIDDeviceManager.swift in Sources */,
 				A10001010000000000000005 /* HIDEventSuppressor.swift in Sources */,
 				A10001010000000000000006 /* MenuBarView.swift in Sources */,
-				A10001010000000000000007 /* DeviceRowView.swift in Sources */,
 				A10001010000000000000008 /* AppSettings.swift in Sources */,
 				A10001010000000000000009 /* LoginItemManager.swift in Sources */,
 				A1000101000000000000000A /* UpdaterManager.swift in Sources */,

@@ -13,6 +13,9 @@ private let logger = Logger(subsystem: "vision.lotech.Untouchable", category: "H
 /// - Call `IOHIDDeviceClose` to release and restore normal input.
 final class HIDEventSuppressor {
 
+    /// IOReturn code when TCC (privacy framework) denies device access.
+    private static let kIOReturnNotPermitted: IOReturn = -536870174
+
     /// Tracks which device IDs are currently seized, mapped to their IOHIDDevice refs.
     private var seizedDevices: [String: IOHIDDevice] = [:]
 
@@ -37,7 +40,7 @@ final class HIDEventSuppressor {
 
             seizedDevices[device.id] = ioDevice
             logger.info("Seized device: \(device.name, privacy: .private) (\(device.id, privacy: .private))")
-        } else if result == -536870174 {
+        } else if result == Self.kIOReturnNotPermitted {
             // TCC denied -- expected for some HID interfaces that macOS restricts.
             // The primary touch interface is usually seized successfully.
             logger.debug("TCC denied seize for \(device.name, privacy: .private) interface \(device.id, privacy: .private) -- expected for secondary interfaces")

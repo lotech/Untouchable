@@ -9,8 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - About window showing app icon, version, build number, copyright, and GitHub link
+- Entitlements verification step in release script (rejects get-task-allow before notarization)
+- Mach-O binary verification step in CI workflow
+- Xcode version pin (16.2) in CI workflow for reproducible builds
+
+### Changed
+- HIDDeviceManager now receives AppSettings at init, ensuring blocked devices are seized immediately on launch instead of waiting for the menu to be opened
+- Balanced Unmanaged.passRetained reference with explicit release in deinit (fixes potential memory leak)
+- TCC denial error code replaced with named constant `kIOReturnNotPermitted`
+- Build script install uses poll-based process wait instead of fixed sleep
+- Toggle binding in MenuBarView uses the new value directly instead of re-reading from device list
+
+### Removed
+- Dead DeviceRowView.swift file and its Xcode project references (replaced by inline toggles in MenuBarView since v1.0.0)
+- Redundant LSBackgroundOnly key from Info.plist (LSUIElement is sufficient for menu bar apps)
 
 ### Fixed
+- Blocked devices not re-seized on launch until user opens the menu (AppSettings was nil during initial IOHIDManager matching callbacks)
 - Release script not passing Developer ID signing identity to xcodebuild (fell back to Apple Development, causing Gatekeeper rejection)
 - Release DMG not codesigned (notarization requires both the app and DMG to be signed)
 - Release script reporting notarization success on "Invalid" status (notarytool returns exit 0 even on rejection; now checks actual status output and auto-fetches rejection log)
