@@ -1,19 +1,6 @@
 import SwiftUI
 
 /// The SwiftUI content displayed inside the `MenuBarExtra` popover.
-///
-/// Layout:
-/// ```
-/// Devices
-/// ─────────────────
-/// [DeviceRowView]   (per device)
-/// ─────────────────
-/// ✓ Launch at Login
-/// ─────────────────
-/// Check for Updates…  (disabled — Sparkle stub)
-/// ─────────────────
-/// Quit Untouchable
-/// ```
 struct MenuBarView: View {
     @ObservedObject var deviceManager: HIDDeviceManager
     @ObservedObject var appSettings: AppSettings
@@ -28,7 +15,10 @@ struct MenuBarView: View {
                 ForEach(deviceManager.devices) { device in
                     DeviceRowView(device: device) {
                         deviceManager.toggleBlocked(for: device)
-                        appSettings.setBlocked(device.isBlocked, forDeviceID: device.id)
+                        // Read updated state from the manager's array
+                        if let updated = deviceManager.devices.first(where: { $0.id == device.id }) {
+                            appSettings.setBlocked(updated.isBlocked, forDeviceID: device.id)
+                        }
                     }
                 }
             }
@@ -45,7 +35,7 @@ struct MenuBarView: View {
         Divider()
 
         // Sparkle update stub (disabled until wired)
-        Button("Check for Updates…") {
+        Button("Check for Updates...") {
             UpdaterManager.shared.checkForUpdates()
         }
         .disabled(true)
