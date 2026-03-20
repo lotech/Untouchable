@@ -132,6 +132,61 @@ The app sandbox is intentionally disabled (documented in CLAUDE.md as accepted r
 
 **PASS** -- Notarization credentials are handled via `xcrun notarytool --keychain-profile "Untouchable"` (lines 368, 393-395, 420-421), which stores credentials securely in the macOS Keychain. No plaintext secrets in the script. The help text at lines 372-376 shows example commands but uses placeholder values.
 
+### 1.8 Delayed Seizure Re-application on Launch
+
+#### HIGH -- Blocked Devices Not Seized Until Menu First Opened
+
+**Files:** `Untouchable/App/UntouchableApp.swift:21-23`, `Untouchable/HID/HIDDeviceManager.swift:73-77,122-135`
+
+`HIDDeviceManager.init()` calls `setupManager()`, which opens the IOHIDManager and fires matching callbacks for already-connected devices. In `deviceConnected()` (line 124):
+
+```swift
+let blocked = appSettings?.isBlocked(persistID) ?? false
+```
+
+At init time, `appSettings` is `nil` because `configure(with:)` is only called from `MenuBarView.onAppear` -- which fires when the user **first clicks the menu bar icon**, not at launch.
+
+**Impact:** From app launch until the user first opens the menu, all previously-blocked devices are **active and producing input**. For a ghost-touch suppression app, this defeats the primary purpose during the startup window. If the user has Launch at Login enabled and never opens the menu, devices are never re-blocked.
+
+**Recommended fix:** Call `configure()` eagerly at app startup instead of deferring to `onAppear`. Either:
+1. Move the call to `AppDelegate.applicationDidFinishLaunching`:
+   ```swift
+   // Requires passing deviceManager and appSettings to AppDelegate
+   func applicationDidFinishLaunching(_ notification: Notification) {
+       deviceManager.configure(with: appSettings)
+   }
+   ```
+2. Or use an `init()` or `.task` modifier in `UntouchableApp` that runs immediately:
+   ```swift
+   @main
+   struct UntouchableApp: App {
+       @StateObject private var deviceManager = HIDDeviceManager()
+       @StateObject private var appSettings = AppSettings()
+
+       init() {
+           // Can't access @StateObject in init -- use alternative
+       }
+
+       var body: some Scene {
+           MenuBarExtra("Untouchable", image: "MenuBarIcon") {
+               MenuBarView(deviceManager: deviceManager, appSettings: appSettings)
+           }
+           .onChange(of: appSettings.blockedDeviceIDs) { _ in }  // not ideal
+       }
+   }
+   ```
+3. Best approach: inject `AppSettings` into `HIDDeviceManager.init()` directly so blocked state is known before matching callbacks fire:
+   ```swift
+   @StateObject private var appSettings = AppSettings()
+   @StateObject private var deviceManager: HIDDeviceManager
+
+   init() {
+       let settings = AppSettings()
+       _appSettings = StateObject(wrappedValue: settings)
+       _deviceManager = StateObject(wrappedValue: HIDDeviceManager(settings: settings))
+   }
+   ```
+
 ---
 
 ## 2. Code Quality
@@ -368,16 +423,17 @@ Two TODOs found in `Untouchable/Updater/UpdaterManager.swift`:
 
 | # | Severity | Area | Issue | File |
 |---|----------|------|-------|------|
-| 1 | **MEDIUM** | Security | Unmanaged reference leak in callback context | `HIDDeviceManager.swift:98` |
-| 2 | **MEDIUM** | Config | Unnecessary `LSBackgroundOnly` key in Info.plist | `Info.plist:27-28` |
-| 3 | **MEDIUM** | Build | Missing entitlements verification in release build | `scripts/release.sh` |
-| 4 | **MEDIUM** | CI | No test step in CI workflow | `.github/workflows/build.yml` |
-| 5 | **LOW** | Security | Magic number for TCC denial error code | `HIDEventSuppressor.swift:40` |
-| 6 | **LOW** | Quality | DeviceRowView.swift is dead code | `UI/DeviceRowView.swift` |
-| 7 | **LOW** | Docs | README architecture lists dead DeviceRowView | `README.md:98` |
-| 8 | **LOW** | CI | Missing Xcode version pin in CI | `.github/workflows/build.yml` |
-| 9 | **LOW** | Build | Sleep-based process wait in build script | `scripts/build.sh:77-82` |
-| 10 | **LOW** | Quality | Toggle binding double lookup | `MenuBarView.swift:58-67` |
+| 1 | **HIGH** | Functional | Blocked devices not re-seized until menu first opened | `UntouchableApp.swift:21-23` |
+| 2 | **MEDIUM** | Security | Unmanaged reference leak in callback context | `HIDDeviceManager.swift:98` |
+| 3 | **MEDIUM** | Config | Unnecessary `LSBackgroundOnly` key in Info.plist | `Info.plist:27-28` |
+| 4 | **MEDIUM** | Build | Missing entitlements verification in release build | `scripts/release.sh` |
+| 5 | **MEDIUM** | CI | No test step in CI workflow | `.github/workflows/build.yml` |
+| 6 | **LOW** | Security | Magic number for TCC denial error code | `HIDEventSuppressor.swift:40` |
+| 7 | **LOW** | Quality | DeviceRowView.swift is dead code | `UI/DeviceRowView.swift` |
+| 8 | **LOW** | Docs | README architecture lists dead DeviceRowView | `README.md:98` |
+| 9 | **LOW** | CI | Missing Xcode version pin in CI | `.github/workflows/build.yml` |
+| 10 | **LOW** | Build | Sleep-based process wait in build script | `scripts/build.sh:77-82` |
+| 11 | **LOW** | Quality | Toggle binding double lookup | `MenuBarView.swift:58-67` |
 
 ### What Passed
 
@@ -396,4 +452,4 @@ Two TODOs found in `Untouchable/Updater/UpdaterManager.swift`:
 
 ### Overall Assessment
 
-The codebase is in good shape for a small, focused utility. **No critical or high-severity issues found.** The four medium-severity items are improvements that would strengthen the project but are not blockers. The codebase demonstrates careful attention to IOKit memory management, thread safety, and privacy -- areas where macOS HID apps frequently have bugs.
+The codebase is in good shape for a small, focused utility. **No critical issues found. One high-severity functional bug:** blocked devices are not re-seized until the menu is first opened, creating a window after launch where ghost-touch suppression is inactive. The four medium-severity items are improvements that would strengthen the project. The codebase demonstrates careful attention to IOKit memory management, thread safety, and privacy -- areas where macOS HID apps frequently have bugs.
