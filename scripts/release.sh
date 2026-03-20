@@ -80,7 +80,9 @@ check_signing_identity() {
         local id_line
         id_line="$(echo "$identities" | grep "Developer ID Application" | head -1)"
         SIGNING_IDENTITY="$(echo "$id_line" | sed 's/.*"\(.*\)"/\1/')"
+        TEAM_ID="$(echo "$SIGNING_IDENTITY" | sed 's/.*(\(.*\))/\1/')"
         success "Signing identity: $SIGNING_IDENTITY"
+        success "Team ID: $TEAM_ID"
     elif echo "$identities" | grep -q "Apple Development"; then
         warn "No 'Developer ID Application' certificate found."
         echo "      You have an Apple Development cert, which works for local use"
@@ -93,6 +95,7 @@ check_signing_identity() {
             local id_line
             id_line="$(echo "$identities" | grep "Apple Development" | head -1)"
             SIGNING_IDENTITY="$(echo "$id_line" | sed 's/.*"\(.*\)"/\1/')"
+            TEAM_ID="$(echo "$SIGNING_IDENTITY" | sed 's/.*(\(.*\))/\1/')"
             warn "Using: $SIGNING_IDENTITY"
         else
             preflight_passed=false
@@ -221,6 +224,7 @@ do_release_build() {
         -quiet \
         ONLY_ACTIVE_ARCH=NO \
         CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
+        DEVELOPMENT_TEAM="$TEAM_ID" \
         OTHER_CODE_SIGN_FLAGS="--timestamp"
 
     APP_PATH="$BUILD_DIR/Build/Products/Release/$APP_NAME"
