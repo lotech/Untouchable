@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="icon.png" width="128" height="128" alt="Untouchable app icon">
+</p>
+
 # Untouchable
 
 A macOS menu bar app that suppresses input from specific HID pointing devices -- solving the ghost-touch / rogue touchscreen problem.

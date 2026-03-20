@@ -16,7 +16,7 @@ struct UntouchableApp: App {
     @StateObject private var appSettings = AppSettings()
 
     var body: some Scene {
-        MenuBarExtra("Untouchable", systemImage: "hand.raised.slash") {
+        MenuBarExtra("Untouchable", image: "MenuBarIcon") {
             MenuBarView(deviceManager: deviceManager, appSettings: appSettings)
                 .onAppear {
                     deviceManager.configure(with: appSettings)
