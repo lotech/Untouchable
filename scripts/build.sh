@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Untouchable — Build & Deploy Script
+# Untouchable -- Build & Deploy Script
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PROJECT="$REPO_ROOT/Untouchable.xcodeproj"
@@ -12,24 +12,24 @@ INSTALL_DIR="/Applications"
 
 cd "$REPO_ROOT"
 
-# ── Helpers ──────────────────────────────────────────────────────────
+# -- Helpers ---------------------------------------------------------------
 
 log()     { echo "==> $*"; }
-success() { echo "  ✓ $*"; }
-fail()    { echo "  ✗ $*" >&2; }
+success() { echo "  [ok] $*"; }
+fail()    { echo "  [!!] $*" >&2; }
 
-# ── Actions ──────────────────────────────────────────────────────────
+# -- Actions ---------------------------------------------------------------
 
 do_pull() {
     local branch
     branch="$(git rev-parse --abbrev-ref HEAD)"
-    log "Pulling latest from origin/$branch…"
-    git pull origin "$branch"
+    log "Pulling latest from origin/${branch}..."
+    git pull origin "${branch}"
     success "Up to date."
 }
 
 do_open() {
-    log "Opening project in Xcode…"
+    log "Opening project in Xcode..."
     open "$PROJECT"
     success "Opened $PROJECT"
 }
@@ -37,13 +37,13 @@ do_open() {
 do_build() {
     local config="${1:-Release}"
 
-    log "Resolving Swift package dependencies…"
+    log "Resolving Swift package dependencies..."
     xcodebuild -resolvePackageDependencies \
         -project "$PROJECT" \
         -scheme "$SCHEME" \
         -quiet 2>/dev/null || true
 
-    log "Building $SCHEME ($config)…"
+    log "Building $SCHEME ($config)..."
     xcodebuild \
         -project "$PROJECT" \
         -scheme "$SCHEME" \
@@ -71,7 +71,7 @@ do_install() {
         return 1
     fi
 
-    log "Installing to $INSTALL_DIR/$APP_NAME…"
+    log "Installing to $INSTALL_DIR/$APP_NAME..."
 
     # Quit the running app if present
     osascript -e 'tell application "Untouchable" to quit' 2>/dev/null || true
@@ -90,7 +90,7 @@ do_install() {
 
 do_launch() {
     if [[ -d "$INSTALL_DIR/$APP_NAME" ]]; then
-        log "Launching Untouchable…"
+        log "Launching Untouchable..."
         open "$INSTALL_DIR/$APP_NAME"
     else
         fail "App not found in $INSTALL_DIR. Install first."
@@ -98,35 +98,35 @@ do_launch() {
 }
 
 do_clean() {
-    log "Cleaning build directory…"
+    log "Cleaning build directory..."
     rm -rf "$BUILD_DIR"
     success "Build directory removed."
 }
 
-# ── Menu ─────────────────────────────────────────────────────────────
+# -- Menu ------------------------------------------------------------------
 
 show_menu() {
     echo ""
-    echo "┌─────────────────────────────────────┐"
-    echo "│         Untouchable Builder          │"
-    echo "├─────────────────────────────────────┤"
-    echo "│                                     │"
-    echo "│  1)  Pull latest from GitHub        │"
-    echo "│  2)  Open in Xcode                  │"
-    echo "│  3)  Build (Release)                │"
-    echo "│  4)  Build (Debug)                  │"
-    echo "│  5)  Install to /Applications       │"
-    echo "│  6)  Build + Install (Release)      │"
-    echo "│  7)  Pull + Build + Install         │"
-    echo "│  8)  Launch Untouchable             │"
-    echo "│  9)  Clean build directory          │"
-    echo "│  0)  Quit                           │"
-    echo "│                                     │"
-    echo "└─────────────────────────────────────┘"
+    echo "+---------------------------------------+"
+    echo "|         Untouchable Builder           |"
+    echo "+---------------------------------------+"
+    echo "|                                       |"
+    echo "|  1)  Pull latest from GitHub          |"
+    echo "|  2)  Open in Xcode                    |"
+    echo "|  3)  Build (Release)                  |"
+    echo "|  4)  Build (Debug)                    |"
+    echo "|  5)  Install to /Applications         |"
+    echo "|  6)  Build + Install (Release)        |"
+    echo "|  7)  Pull + Build + Install           |"
+    echo "|  8)  Launch Untouchable               |"
+    echo "|  9)  Clean build directory            |"
+    echo "|  0)  Quit                             |"
+    echo "|                                       |"
+    echo "+---------------------------------------+"
     echo ""
 }
 
-# ── Main loop ────────────────────────────────────────────────────────
+# -- Main loop -------------------------------------------------------------
 
 # If flags are passed, run non-interactively for CI/scripting
 if [[ $# -gt 0 ]]; then
@@ -165,5 +165,5 @@ while true; do
     esac
 
     echo ""
-    read -rp "Press Enter to continue…"
+    read -rp "Press Enter to continue..."
 done

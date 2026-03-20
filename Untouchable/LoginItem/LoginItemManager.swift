@@ -1,11 +1,10 @@
 import Foundation
 import ServiceManagement
+import os
+
+private let logger = Logger(subsystem: "vision.lotech.Untouchable", category: "LoginItemManager")
 
 /// Manages the "Launch at Login" preference using `SMAppService` (macOS 13+).
-///
-/// This replaces the legacy `SMLoginItemSetEnabled` API with the modern
-/// `SMAppService.mainApp` approach that works with sandboxed and
-/// non-sandboxed apps alike.
 final class LoginItemManager {
 
     static let shared = LoginItemManager()
@@ -18,8 +17,6 @@ final class LoginItemManager {
     }
 
     /// Registers or unregisters the app as a login item.
-    ///
-    /// - Parameter enabled: `true` to register, `false` to unregister.
     func setEnabled(_ enabled: Bool) {
         do {
             if enabled {
@@ -28,8 +25,7 @@ final class LoginItemManager {
                 try SMAppService.mainApp.unregister()
             }
         } catch {
-            // TODO: Surface this error to the user or log it.
-            print("LoginItemManager: Failed to \(enabled ? "register" : "unregister") login item: \(error)")
+            logger.error("Failed to \(enabled ? "register" : "unregister") login item: \(error.localizedDescription)")
         }
     }
 }

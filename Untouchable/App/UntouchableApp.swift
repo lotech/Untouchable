@@ -3,7 +3,7 @@ import SwiftUI
 /// Main entry point for Untouchable.
 ///
 /// Uses `MenuBarExtra` (macOS 13+) to present a menu bar-only interface.
-/// The app has no main window — `LSUIElement` is set in Info.plist to hide
+/// The app has no main window -- `LSUIElement` is set in Info.plist to hide
 /// the Dock icon and app switcher entry.
 @main
 struct UntouchableApp: App {
@@ -18,6 +18,9 @@ struct UntouchableApp: App {
     var body: some Scene {
         MenuBarExtra("Untouchable", systemImage: "hand.raised.slash") {
             MenuBarView(deviceManager: deviceManager, appSettings: appSettings)
+                .onAppear {
+                    deviceManager.configure(with: appSettings)
+                }
         }
     }
 }
