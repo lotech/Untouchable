@@ -6,25 +6,23 @@ struct MenuBarView: View {
     @ObservedObject var appSettings: AppSettings
 
     var body: some View {
-        // Physical devices section
         Section("Devices") {
-            let physical = deviceManager.physicalDevices
+            let physical = deviceManager.physicalDeviceGroups
             if physical.isEmpty {
                 Text("No physical devices found")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(physical) { device in
-                    deviceToggleButton(for: device)
+                ForEach(physical) { group in
+                    deviceToggle(for: group)
                 }
             }
         }
 
-        // Virtual devices in a submenu
-        let virtual = deviceManager.virtualDevices
+        let virtual = deviceManager.virtualDeviceGroups
         if !virtual.isEmpty {
             Menu("Other Devices (\(virtual.count))") {
-                ForEach(virtual) { device in
-                    deviceToggleButton(for: device)
+                ForEach(virtual) { group in
+                    deviceToggle(for: group)
                 }
             }
         }
@@ -52,21 +50,19 @@ struct MenuBarView: View {
     }
 
     @ViewBuilder
-    private func deviceToggleButton(for device: HIDDevice) -> some View {
-        // Use a Toggle so macOS renders a native checkmark
+    private func deviceToggle(for group: DeviceGroup) -> some View {
         Toggle(isOn: Binding(
             get: {
-                deviceManager.devices.first(where: { $0.id == device.id })?.isBlocked ?? false
+                // Read blocked state from any interface in this group
+                deviceManager.devices.first(where: { $0.persistenceID == group.id })?.isBlocked ?? false
             },
             set: { _ in
-                deviceManager.toggleBlocked(for: device)
-                appSettings.setBlocked(
-                    deviceManager.devices.first(where: { $0.id == device.id })?.isBlocked ?? false,
-                    forDeviceID: device.persistenceID
-                )
+                deviceManager.toggleBlocked(forPersistenceID: group.id)
+                let isBlocked = deviceManager.devices.first(where: { $0.persistenceID == group.id })?.isBlocked ?? false
+                appSettings.setBlocked(isBlocked, forDeviceID: group.id)
             }
         )) {
-            Text(device.displayName)
+            Text(group.name)
         }
     }
 }
