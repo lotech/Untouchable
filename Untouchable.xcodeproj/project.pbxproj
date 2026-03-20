@@ -1,0 +1,454 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10001010000000000000001 /* UntouchableApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000001 /* UntouchableApp.swift */; };
+		A10001010000000000000002 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000002 /* AppDelegate.swift */; };
+		A10001010000000000000003 /* HIDDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000003 /* HIDDevice.swift */; };
+		A10001010000000000000004 /* HIDDeviceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000004 /* HIDDeviceManager.swift */; };
+		A10001010000000000000005 /* HIDEventSuppressor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000005 /* HIDEventSuppressor.swift */; };
+		A10001010000000000000006 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000006 /* MenuBarView.swift */; };
+		A10001010000000000000007 /* DeviceRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000007 /* DeviceRowView.swift */; };
+		A10001010000000000000008 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000008 /* AppSettings.swift */; };
+		A10001010000000000000009 /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000009 /* LoginItemManager.swift */; };
+		A1000101000000000000000A /* UpdaterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000201000000000000000A /* UpdaterManager.swift */; };
+		A1000101000000000000000B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000201000000000000000B /* Assets.xcassets */; };
+		A1000101000000000000000C /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1000201000000000000000C /* IOKit.framework */; };
+		A1000101000000000000000D /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A10006010000000000000001 /* Sparkle */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A10002010000000000000001 /* UntouchableApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UntouchableApp.swift; sourceTree = "<group>"; };
+		A10002010000000000000002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A10002010000000000000003 /* HIDDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDDevice.swift; sourceTree = "<group>"; };
+		A10002010000000000000004 /* HIDDeviceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDDeviceManager.swift; sourceTree = "<group>"; };
+		A10002010000000000000005 /* HIDEventSuppressor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDEventSuppressor.swift; sourceTree = "<group>"; };
+		A10002010000000000000006 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		A10002010000000000000007 /* DeviceRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRowView.swift; sourceTree = "<group>"; };
+		A10002010000000000000008 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		A10002010000000000000009 /* LoginItemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemManager.swift; sourceTree = "<group>"; };
+		A1000201000000000000000A /* UpdaterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdaterManager.swift; sourceTree = "<group>"; };
+		A1000201000000000000000B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A1000201000000000000000C /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
+		A1000201000000000000000D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A1000201000000000000000E /* Untouchable.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Untouchable.entitlements; sourceTree = "<group>"; };
+		A1000201000000000000000F /* Untouchable.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Untouchable.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A10003010000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000101000000000000000C /* IOKit.framework in Frameworks */,
+				A1000101000000000000000D /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A10004010000000000000001 /* = BEGIN listing of the main group = */ = {
+			isa = PBXGroup;
+			children = (
+				A10004010000000000000002 /* Untouchable */,
+				A10004010000000000000008 /* Products */,
+				A10004010000000000000009 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		A10004010000000000000002 /* Untouchable */ = {
+			isa = PBXGroup;
+			children = (
+				A10004010000000000000003 /* App */,
+				A10004010000000000000004 /* HID */,
+				A10004010000000000000005 /* UI */,
+				A10004010000000000000006 /* Settings */,
+				A10004010000000000000007 /* LoginItem */,
+				A1000401000000000000000A /* Updater */,
+				A1000201000000000000000B /* Assets.xcassets */,
+				A1000201000000000000000D /* Info.plist */,
+				A1000201000000000000000E /* Untouchable.entitlements */,
+			);
+			path = Untouchable;
+			sourceTree = "<group>";
+		};
+		A10004010000000000000003 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				A10002010000000000000001 /* UntouchableApp.swift */,
+				A10002010000000000000002 /* AppDelegate.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A10004010000000000000004 /* HID */ = {
+			isa = PBXGroup;
+			children = (
+				A10002010000000000000003 /* HIDDevice.swift */,
+				A10002010000000000000004 /* HIDDeviceManager.swift */,
+				A10002010000000000000005 /* HIDEventSuppressor.swift */,
+			);
+			path = HID;
+			sourceTree = "<group>";
+		};
+		A10004010000000000000005 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				A10002010000000000000006 /* MenuBarView.swift */,
+				A10002010000000000000007 /* DeviceRowView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		A10004010000000000000006 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				A10002010000000000000008 /* AppSettings.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		A10004010000000000000007 /* LoginItem */ = {
+			isa = PBXGroup;
+			children = (
+				A10002010000000000000009 /* LoginItemManager.swift */,
+			);
+			path = LoginItem;
+			sourceTree = "<group>";
+		};
+		A10004010000000000000008 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A1000201000000000000000F /* Untouchable.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A10004010000000000000009 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				A1000201000000000000000C /* IOKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		A1000401000000000000000A /* Updater */ = {
+			isa = PBXGroup;
+			children = (
+				A1000201000000000000000A /* UpdaterManager.swift */,
+			);
+			path = Updater;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A10005010000000000000001 /* Untouchable */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10008010000000000000003 /* Build configuration list for PBXNativeTarget "Untouchable" */;
+			buildPhases = (
+				A10003010000000000000002 /* Sources */,
+				A10003010000000000000001 /* Frameworks */,
+				A10003010000000000000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Untouchable;
+			packageProductDependencies = (
+				A10006010000000000000001 /* Sparkle */,
+			);
+			productName = Untouchable;
+			productReference = A1000201000000000000000F /* Untouchable.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A10007010000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					A10005010000000000000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = A10008010000000000000001 /* Build configuration list for PBXProject "Untouchable" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A10004010000000000000001;
+			packageReferences = (
+				A10009010000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
+			productRefGroup = A10004010000000000000008 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A10005010000000000000001 /* Untouchable */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A10003010000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000101000000000000000B /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A10003010000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10001010000000000000001 /* UntouchableApp.swift in Sources */,
+				A10001010000000000000002 /* AppDelegate.swift in Sources */,
+				A10001010000000000000003 /* HIDDevice.swift in Sources */,
+				A10001010000000000000004 /* HIDDeviceManager.swift in Sources */,
+				A10001010000000000000005 /* HIDEventSuppressor.swift in Sources */,
+				A10001010000000000000006 /* MenuBarView.swift in Sources */,
+				A10001010000000000000007 /* DeviceRowView.swift in Sources */,
+				A10001010000000000000008 /* AppSettings.swift in Sources */,
+				A10001010000000000000009 /* LoginItemManager.swift in Sources */,
+				A1000101000000000000000A /* UpdaterManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A1000A010000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A1000A010000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		A1000A010000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Untouchable/Untouchable.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Untouchable/Info.plist;
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMainStoryboardFile = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = vision.lotech.Untouchable;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A1000A010000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Untouchable/Untouchable.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Untouchable/Info.plist;
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMainStoryboardFile = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = vision.lotech.Untouchable;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A10008010000000000000001 /* Build configuration list for PBXProject "Untouchable" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1000A010000000000000001 /* Debug */,
+				A1000A010000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10008010000000000000003 /* Build configuration list for PBXNativeTarget "Untouchable" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1000A010000000000000003 /* Debug */,
+				A1000A010000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A10009010000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A10006010000000000000001 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10009010000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
+
+	};
+	rootObject = A10007010000000000000001 /* Project object */;
+}
