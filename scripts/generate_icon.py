@@ -37,21 +37,24 @@ SVG_ICON = r"""<?xml version="1.0" encoding="UTF-8"?>
   <!-- Inner glow overlay -->
   <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228" fill="url(#glow)"/>
 
-  <!-- Hand/finger pointing down to touch point -->
-  <!-- Finger (index finger shape pointing down) -->
-  <rect x="488" y="200" width="48" height="180" rx="24" ry="24" fill="white" opacity="0.9"/>
-  <!-- Fingertip bulge -->
-  <ellipse cx="512" cy="390" rx="34" ry="22" fill="white" opacity="0.9"/>
-  <!-- Palm/knuckle area -->
-  <ellipse cx="512" cy="205" rx="52" ry="30" fill="white" opacity="0.85"/>
+  <!-- Lucide "pointer" hand icon (ISC license) scaled from 24x24 viewBox -->
+  <g transform="translate(290, 140) scale(19)"
+     fill="none" stroke="white" stroke-width="2"
+     stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+    <path d="M22 14a8 8 0 0 1-8 8"/>
+    <path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
+    <path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1"/>
+    <path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10"/>
+    <path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+  </g>
 
-  <!-- Touch point where finger meets surface -->
-  <circle cx="512" cy="440" r="18" fill="white" opacity="0.95"/>
+  <!-- Touch point below the hand fingertip -->
+  <circle cx="512" cy="480" r="16" fill="white" opacity="0.95"/>
 
   <!-- Touch ripple rings radiating from touch point -->
-  <circle cx="512" cy="500" r="90" fill="none" stroke="white" stroke-width="20" opacity="0.65"/>
-  <circle cx="512" cy="500" r="160" fill="none" stroke="white" stroke-width="16" opacity="0.40"/>
-  <circle cx="512" cy="500" r="235" fill="none" stroke="white" stroke-width="14" opacity="0.22"/>
+  <circle cx="512" cy="560" r="80" fill="none" stroke="white" stroke-width="18" opacity="0.55"/>
+  <circle cx="512" cy="560" r="150" fill="none" stroke="white" stroke-width="14" opacity="0.32"/>
+  <circle cx="512" cy="560" r="220" fill="none" stroke="white" stroke-width="12" opacity="0.18"/>
 
   <!-- Prohibition circle (thicker) -->
   <circle cx="512" cy="512" r="340" fill="none" stroke="url(#slashGrad)" stroke-width="68" opacity="0.92"/>
