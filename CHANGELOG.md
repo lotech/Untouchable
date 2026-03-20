@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Device disconnect not updating menu when unplugging a monitor/USB device (removal callback matched by object reference instead of device ID)
+
 ## [1.0.0] - 2026-03-20
 
 ### Added

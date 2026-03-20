@@ -136,10 +136,21 @@ final class HIDDeviceManager: ObservableObject {
     }
 
     private func deviceDisconnected(_ device: IOHIDDevice) {
-        if let index = devices.firstIndex(where: { $0.ioHIDDevice == device }) {
+        // Match by unique ID rather than object reference -- the IOHIDDevice
+        // pointer in the removal callback may differ from the one stored at
+        // connect time (e.g. after sleep/wake or USB hub re-enumeration).
+        let vid = IOHIDDeviceGetProperty(device, kIOHIDVendorIDKey as CFString) as? Int ?? 0
+        let pid = IOHIDDeviceGetProperty(device, kIOHIDProductIDKey as CFString) as? Int ?? 0
+        let entryID = IOHIDDeviceGetProperty(device, kIOHIDUniqueIDKey as CFString) as? Int
+            ?? Int(bitPattern: Unmanaged.passUnretained(device).toOpaque())
+        let disconnectedID = "\(vid):\(pid):\(entryID)"
+
+        if let index = devices.firstIndex(where: { $0.id == disconnectedID }) {
             let removed = devices.remove(at: index)
             suppressor.releaseByID(removed.id)
             logger.info("Device disconnected: \(removed.name, privacy: .private) (\(removed.id, privacy: .private))")
+        } else {
+            logger.warning("Removal callback for unknown device id=\(disconnectedID, privacy: .private)")
         }
     }
 
