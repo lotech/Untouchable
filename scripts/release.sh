@@ -530,9 +530,9 @@ create_github_release() {
     git tag -a "$tag" -m "Release $tag"
     success "Tag created."
 
-    log "Pushing commits and tag to origin..."
-    git push origin HEAD "$tag"
-    success "Pushed."
+    log "Pushing tag to origin..."
+    git push origin "$tag"
+    success "Tag pushed."
 
     log "Creating GitHub Release..."
     gh release create "$tag" \
