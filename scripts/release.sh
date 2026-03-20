@@ -223,6 +223,7 @@ do_release_build() {
         -derivedDataPath "$BUILD_DIR" \
         -quiet \
         ONLY_ACTIVE_ARCH=NO \
+        CODE_SIGN_STYLE=Manual \
         CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
         DEVELOPMENT_TEAM="$TEAM_ID" \
         OTHER_CODE_SIGN_FLAGS="--timestamp"
