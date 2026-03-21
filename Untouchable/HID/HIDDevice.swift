@@ -47,6 +47,11 @@ struct HIDDevice: Identifiable, Hashable {
     /// Whether this is a built-in device (e.g. internal trackpad) that lacks vendor/product IDs.
     let isBuiltIn: Bool
 
+    /// Whether this device is a USB Overdrive VirtualHID proxy.
+    /// Overdrive intercepts physical devices at the DriverKit level and forwards
+    /// events through synthetic VirtualHID devices, bypassing userspace seizure.
+    let isOverdriveVirtual: Bool
+
     // MARK: - Convenience init from IOHIDDevice
 
     init?(from device: IOHIDDevice, isBlocked: Bool = false) {
@@ -83,6 +88,12 @@ struct HIDDevice: Identifiable, Hashable {
         self.ioHIDDevice = device
         self.usagePage = IOHIDDeviceGetProperty(device, kIOHIDPrimaryUsagePageKey as CFString) as? Int ?? 0
         self.usage = IOHIDDeviceGetProperty(device, kIOHIDPrimaryUsageKey as CFString) as? Int ?? 0
+
+        // Detect USB Overdrive VirtualHID proxies. Overdrive's DriverKit extension
+        // intercepts physical devices and re-publishes events through synthetic devices
+        // that bypass IOKit userspace seizure (kIOHIDOptionsTypeSeizeDevice).
+        let isOD = IOHIDDeviceGetProperty(device, "IsOverdriveVirtualHID" as CFString) as? Bool ?? false
+        self.isOverdriveVirtual = isOD
 
         // Detect virtual devices by checking transport or name patterns
         let transport = IOHIDDeviceGetProperty(device, kIOHIDTransportKey as CFString) as? String ?? ""
