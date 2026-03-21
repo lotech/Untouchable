@@ -106,17 +106,18 @@ final class HIDDeviceManager: ObservableObject {
         manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
         guard let manager = manager else { return }
 
+        // Match mice, pointers, and ALL digitizer-page devices.
+        // Touchscreens often expose multiple HID interfaces with different
+        // digitizer usages (TouchScreen, Pen, MultiplePointDigitizer,
+        // DeviceConfiguration, etc.). Matching the entire digitizer usage page
+        // ensures we discover -- and can seize -- every interface, preventing
+        // touch input from leaking through unmatched interfaces.
         let matchingCriteria: [[String: Any]] = [
             [kIOHIDDeviceUsagePageKey: kHIDPage_GenericDesktop,
              kIOHIDDeviceUsageKey: kHIDUsage_GD_Mouse],
             [kIOHIDDeviceUsagePageKey: kHIDPage_GenericDesktop,
              kIOHIDDeviceUsageKey: kHIDUsage_GD_Pointer],
-            [kIOHIDDeviceUsagePageKey: kHIDPage_Digitizer,
-             kIOHIDDeviceUsageKey: kHIDUsage_Dig_TouchScreen],
-            [kIOHIDDeviceUsagePageKey: kHIDPage_Digitizer,
-             kIOHIDDeviceUsageKey: kHIDUsage_Dig_TouchPad],
-            [kIOHIDDeviceUsagePageKey: kHIDPage_Digitizer,
-             kIOHIDDeviceUsageKey: kHIDUsage_Dig_Digitizer],
+            [kIOHIDDeviceUsagePageKey: kHIDPage_Digitizer],
         ]
 
         IOHIDManagerSetDeviceMatchingMultiple(manager, matchingCriteria as CFArray)
@@ -179,7 +180,9 @@ final class HIDDeviceManager: ObservableObject {
         // connect time (e.g. after sleep/wake or USB hub re-enumeration).
         let vid = IOHIDDeviceGetProperty(device, kIOHIDVendorIDKey as CFString) as? Int
         let pid = IOHIDDeviceGetProperty(device, kIOHIDProductIDKey as CFString) as? Int
-        let builtIn = IOHIDDeviceGetProperty(device, "BuiltIn" as CFString) as? Bool ?? false
+        let builtInProp = IOHIDDeviceGetProperty(device, "BuiltIn" as CFString) as? Bool ?? false
+        let name = IOHIDDeviceGetProperty(device, kIOHIDProductKey as CFString) as? String ?? ""
+        let builtIn = builtInProp || name.hasPrefix("Apple Internal")
         let entryID = IOHIDDeviceGetProperty(device, kIOHIDUniqueIDKey as CFString) as? Int
             ?? Int(bitPattern: Unmanaged.passUnretained(device).toOpaque())
         let disconnectedID: String
@@ -201,7 +204,9 @@ final class HIDDeviceManager: ObservableObject {
     private func persistenceID(for device: IOHIDDevice) -> String {
         let vid = IOHIDDeviceGetProperty(device, kIOHIDVendorIDKey as CFString) as? Int
         let pid = IOHIDDeviceGetProperty(device, kIOHIDProductIDKey as CFString) as? Int
-        let builtIn = IOHIDDeviceGetProperty(device, "BuiltIn" as CFString) as? Bool ?? false
+        let builtInProp = IOHIDDeviceGetProperty(device, "BuiltIn" as CFString) as? Bool ?? false
+        let name = IOHIDDeviceGetProperty(device, kIOHIDProductKey as CFString) as? String ?? ""
+        let builtIn = builtInProp || name.hasPrefix("Apple Internal")
         if builtIn && vid == nil && pid == nil {
             return "builtin:trackpad"
         }

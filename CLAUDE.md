@@ -34,13 +34,13 @@ Untouchable/
 
 - Xcode: open Untouchable.xcodeproj, Cmd+R
 - CLI: `./scripts/build.sh` (interactive menu) or `./scripts/build.sh --build`
-- Flags: `--pull`, `--open`, `--build`, `--install`, `--clean`
+- Flags: `--pull`, `--open`, `--build`, `--install`, `--clean`, `--reset-tcc`
 
 ## Important Patterns
 
 - HIDDeviceManager is an ObservableObject; call `configure(with: AppSettings)` after init to load persisted blocked state
 - HIDEventSuppressor tracks seized devices by ID string; always call releaseAll() on termination
-- Device matching uses multiple criteria: GD_Mouse, GD_Pointer, Dig_TouchScreen, Dig_TouchPad, Dig_Digitizer
+- Device matching uses: GD_Mouse, GD_Pointer, and the entire Digitizer usage page (catches all digitizer interface types)
 - IOHIDManager callbacks dispatch to main queue before mutating @Published state
 - Unmanaged.passRetained(self) used for C callback context pointer; deinit unschedules run loop before dealloc
 
