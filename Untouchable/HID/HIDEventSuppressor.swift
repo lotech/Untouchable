@@ -62,7 +62,8 @@ final class HIDEventSuppressor: ObservableObject {
         // before opening with exclusive seizure. IOKit does not upgrade an
         // existing non-exclusive open to exclusive; the close-then-reopen
         // cycle is what makes the manual toggle path work.
-        IOHIDDeviceClose(ioDevice, IOOptionBits(kIOHIDOptionsTypeNone))
+        let closeResult = IOHIDDeviceClose(ioDevice, IOOptionBits(kIOHIDOptionsTypeNone))
+        logger.notice("Pre-seize close for \(device.name, privacy: .public) (\(device.id, privacy: .public)): IOReturn \(closeResult)")
 
         let result = IOHIDDeviceOpen(ioDevice, IOOptionBits(kIOHIDOptionsTypeSeizeDevice))
         if result == kIOReturnSuccess {

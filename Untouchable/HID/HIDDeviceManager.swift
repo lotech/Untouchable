@@ -72,6 +72,27 @@ final class HIDDeviceManager: ObservableObject {
         self.appSettings = settings
         setupManager()
         observeSystemWake()
+
+        // Auto-toggle: mirror the manual release-then-seize cycle that users
+        // perform to make seizure stick. The initial seize during enumeration
+        // reports success but does not take effect. A full release + delayed
+        // re-seize (exactly matching the manual toggle path) resolves this.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { [weak self] in
+            guard let self = self else { return }
+            let blocked = self.devices.filter { $0.isBlocked }
+            guard !blocked.isEmpty else { return }
+            logger.notice("Auto-toggle: releasing \(blocked.count) blocked device(s)")
+            for device in blocked {
+                self.suppressor.release(device)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                guard let self = self else { return }
+                logger.notice("Auto-toggle: re-seizing \(blocked.count) device(s)")
+                for device in blocked {
+                    self.suppressor.seize(device)
+                }
+            }
+        }
     }
 
     deinit {
