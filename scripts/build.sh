@@ -111,6 +111,12 @@ do_launch() {
     fi
 }
 
+do_reset_tcc() {
+    log "Resetting Input Monitoring permission for $SCHEME..."
+    tccutil reset ListenEvent vision.lotech.Untouchable
+    success "TCC reset. Relaunch the app to re-approve Input Monitoring."
+}
+
 do_clean() {
     log "Cleaning build directory..."
     rm -rf "$BUILD_DIR"
@@ -134,6 +140,7 @@ show_menu() {
     echo "|  7)  Pull + Build + Install           |"
     echo "|  8)  Launch Untouchable               |"
     echo "|  9)  Clean build directory            |"
+    echo "| 10)  Reset TCC (Input Monitoring)     |"
     echo "|  0)  Quit                             |"
     echo "|                                       |"
     echo "+---------------------------------------+"
@@ -150,8 +157,9 @@ if [[ $# -gt 0 ]]; then
         --build)   do_build "${2:-Release}" ;;
         --install) do_build "${2:-Release}" && do_install "${2:-Release}" ;;
         --clean)   do_clean ;;
+        --reset-tcc) do_reset_tcc ;;
         --help|-h)
-            echo "Usage: $(basename "$0") [--pull|--open|--build|--install|--clean]"
+            echo "Usage: $(basename "$0") [--pull|--open|--build|--install|--clean|--reset-tcc]"
             echo "       $(basename "$0")          # interactive menu"
             ;;
         *) echo "Unknown option: $1"; exit 1 ;;
@@ -162,7 +170,7 @@ fi
 # Interactive menu
 while true; do
     show_menu
-    read -rp "Choose [0-9]: " choice
+    read -rp "Choose [0-10]: " choice
 
     case "$choice" in
         1) do_pull ;;
@@ -174,6 +182,7 @@ while true; do
         7) do_pull && do_build "Release" && do_install "Release" ;;
         8) do_launch ;;
         9) do_clean ;;
+        10) do_reset_tcc ;;
         0) echo "Bye."; exit 0 ;;
         *) fail "Invalid choice." ;;
     esac
