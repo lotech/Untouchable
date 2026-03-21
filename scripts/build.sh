@@ -99,6 +99,10 @@ do_install() {
     /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
         -f "$INSTALL_DIR/$APP_NAME" 2>/dev/null || true
 
+    # Reset TCC so the new code signature gets a fresh Input Monitoring grant.
+    # Without this, macOS silently ignores device seizures after a rebuild.
+    do_reset_tcc
+
     success "Installed to $INSTALL_DIR/$APP_NAME"
 }
 
