@@ -72,6 +72,16 @@ final class HIDDeviceManager: ObservableObject {
         self.appSettings = settings
         setupManager()
         observeSystemWake()
+
+        // After a TCC reset (e.g. rebuild), IOHIDDeviceOpen can return success
+        // while the Input Monitoring prompt is still showing. The kernel silently
+        // ignores the seizure until the user clicks Allow. Re-seize after a delay
+        // so blocked devices are actually suppressed once TCC is fully granted.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+            guard let self = self else { return }
+            logger.notice("Post-launch re-seizure of blocked devices")
+            self.suppressor.reseizeAll()
+        }
     }
 
     deinit {
