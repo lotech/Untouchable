@@ -19,7 +19,7 @@ final class HIDEventSuppressor: ObservableObject {
     /// IOReturn code when TCC (privacy framework) denies device access.
     private static let kIOReturnNotPermitted: IOReturn = -536870174
 
-    /// Maximum number of automatic retries for failed seizures.
+    /// Maximum number of automatic retries for failed seizures (transient errors only).
     private static let maxRetries = 3
 
     /// Delay between retry attempts (seconds).
@@ -30,6 +30,13 @@ final class HIDEventSuppressor: ObservableObject {
 
     /// Tracks retry counts for interfaces that failed to seize.
     private var retryCounts: [String: Int] = [:]
+
+    /// Pending retry work items, keyed by device ID. Cancelled on disconnect.
+    private var pendingRetries: [String: DispatchWorkItem] = [:]
+
+    /// Device IDs where seizure was permanently denied (TCC). Not retried until
+    /// the device disconnects and reconnects (which implies a new TCC check).
+    private var tccDeniedIDs: Set<String> = []
 
     /// Set to `true` when at least one device seizure fails due to TCC denial.
     /// The UI observes this to prompt the user to re-grant Input Monitoring.
@@ -47,8 +54,9 @@ final class HIDEventSuppressor: ObservableObject {
             return
         }
 
-        // Already seized
+        // Already seized or permanently denied for this interface
         if seizedDevices[device.id] != nil { return }
+        if tccDeniedIDs.contains(device.id) { return }
 
         let result = IOHIDDeviceOpen(ioDevice, IOOptionBits(kIOHIDOptionsTypeSeizeDevice))
         if result == kIOReturnSuccess {
@@ -59,35 +67,40 @@ final class HIDEventSuppressor: ObservableObject {
 
             seizedDevices[device.id] = ioDevice
             retryCounts.removeValue(forKey: device.id)
+            pendingRetries.removeValue(forKey: device.id)
             tccDeniedDeviceNames.remove(device.name)
             if tccDeniedDeviceNames.isEmpty {
                 tccDenied = false
             }
             logger.notice("Seized device: \(device.name, privacy: .public) (\(device.id, privacy: .public))")
+        } else if result == Self.kIOReturnNotPermitted {
+            // TCC (Input Monitoring) denial or another process holds exclusive seizure.
+            // Single-instance enforcement eliminates the competing-process case, so this
+            // is almost certainly TCC. Don't retry -- TCC status won't change mid-session.
+            retryCounts.removeValue(forKey: device.id)
+            pendingRetries.removeValue(forKey: device.id)?.cancel()
+            tccDeniedIDs.insert(device.id)
+            tccDenied = true
+            tccDeniedDeviceNames.insert(device.name)
+            logger.warning("Cannot seize \(device.name, privacy: .public) interface \(device.id, privacy: .public) (TCC denied) -- input from this interface will leak through. Grant Input Monitoring permission in System Settings and relaunch.")
         } else {
+            // Transient failure (e.g. device not ready after enumeration) -- retry
             let retries = retryCounts[device.id] ?? 0
             if retries < Self.maxRetries {
                 retryCounts[device.id] = retries + 1
                 let attempt = retries + 1
-                logger.notice("Seize attempt \(attempt)/\(Self.maxRetries) failed for \(device.name, privacy: .public) interface \(device.id, privacy: .public) (IOReturn \(result)) -- retrying in \(Self.retryDelay)s")
+                let delay = Self.retryDelay * Double(attempt)
+                logger.notice("Seize attempt \(attempt)/\(Self.maxRetries) failed for \(device.name, privacy: .public) interface \(device.id, privacy: .public) (IOReturn \(result)) -- retrying in \(delay)s")
                 let deviceCopy = device
-                DispatchQueue.main.asyncAfter(deadline: .now() + Self.retryDelay * Double(attempt)) {
-                    self.seize(deviceCopy)
+                let workItem = DispatchWorkItem { [weak self] in
+                    self?.seize(deviceCopy)
                 }
+                pendingRetries[device.id] = workItem
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
             } else {
                 retryCounts.removeValue(forKey: device.id)
-                if result == Self.kIOReturnNotPermitted {
-                    // kIOReturnNotPermitted can mean either:
-                    // 1. TCC (Input Monitoring) permission not granted for this binary
-                    // 2. Another process already holds exclusive seizure on this device
-                    // We cannot distinguish these at the IOKit level, but single-instance
-                    // enforcement in AppDelegate eliminates case 2 on normal launches.
-                    tccDenied = true
-                    tccDeniedDeviceNames.insert(device.name)
-                    logger.warning("Cannot seize \(device.name, privacy: .public) interface \(device.id, privacy: .public) after \(Self.maxRetries) attempts (not permitted: TCC denial or another process holds seizure) -- input from this interface may leak through")
-                } else {
-                    logger.error("Failed to seize \(device.name, privacy: .public) interface \(device.id, privacy: .public) after \(Self.maxRetries) attempts: IOReturn \(result)")
-                }
+                pendingRetries.removeValue(forKey: device.id)
+                logger.error("Failed to seize \(device.name, privacy: .public) interface \(device.id, privacy: .public) after \(Self.maxRetries) attempts: IOReturn \(result)")
             }
         }
     }
@@ -97,8 +110,14 @@ final class HIDEventSuppressor: ObservableObject {
         releaseByID(device.id)
     }
 
-    /// Releases a seized device by its ID string.
+    /// Releases a seized device by its ID string. Also cancels any pending
+    /// retries and clears TCC denial state so a reconnect gets a fresh attempt.
     func releaseByID(_ deviceID: String) {
+        // Cancel any pending retry for this interface
+        pendingRetries.removeValue(forKey: deviceID)?.cancel()
+        retryCounts.removeValue(forKey: deviceID)
+        tccDeniedIDs.remove(deviceID)
+
         guard let ioDevice = seizedDevices.removeValue(forKey: deviceID) else { return }
 
         IOHIDDeviceRegisterInputValueCallback(ioDevice, nil, nil)
@@ -131,6 +150,11 @@ final class HIDEventSuppressor: ObservableObject {
 
     /// Releases all currently seized devices. Called on app termination.
     func releaseAll() {
+        for (_, workItem) in pendingRetries { workItem.cancel() }
+        pendingRetries.removeAll()
+        retryCounts.removeAll()
+        tccDeniedIDs.removeAll()
+
         for (id, ioDevice) in seizedDevices {
             IOHIDDeviceRegisterInputValueCallback(ioDevice, nil, nil)
             IOHIDDeviceClose(ioDevice, IOOptionBits(kIOHIDOptionsTypeNone))
