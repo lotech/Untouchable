@@ -66,6 +66,11 @@ final class HIDDeviceManager: ObservableObject {
     /// Retains `self` for the C callback context pointer; released in `deinit`.
     private var retainedSelf: Unmanaged<HIDDeviceManager>?
 
+    /// True during the initial enumeration burst. Seizures are deferred until
+    /// IOKit has finished setting up, because IOHIDDeviceOpen can return success
+    /// during initial enumeration without the kernel actually enforcing the seizure.
+    private var deferringInitialSeizures = true
+
     // MARK: - Init
 
     init(settings: AppSettings) {
@@ -73,26 +78,17 @@ final class HIDDeviceManager: ObservableObject {
         setupManager()
         observeSystemWake()
 
-        // After a TCC reset (e.g. rebuild), IOHIDDeviceOpen can return success
-        // while the Input Monitoring prompt is still showing. The kernel silently
-        // ignores the seizure until the user clicks Allow. A close-then-reopen
-        // (reseizeAll) doesn't clear this stale state reliably -- we need a full
-        // release-then-seize cycle with a gap, matching what happens when the
-        // user manually toggles the device off and on.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+        // Defer initial seizures: IOHIDDeviceOpen returns success during the
+        // initial enumeration burst but the kernel does not enforce the seizure.
+        // Wait for enumeration to settle, then seize all blocked devices.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
             guard let self = self else { return }
-            let blockedDevices = self.devices.filter { $0.isBlocked }
-            guard !blockedDevices.isEmpty else { return }
-            logger.notice("Post-launch: releasing \(blockedDevices.count) blocked device(s) for re-seizure")
-            for device in blockedDevices {
-                self.suppressor.release(device)
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                guard let self = self else { return }
-                for device in blockedDevices {
-                    self.suppressor.seize(device)
-                }
-                logger.notice("Post-launch: re-seized \(blockedDevices.count) blocked device(s)")
+            self.deferringInitialSeizures = false
+            let blocked = self.devices.filter { $0.isBlocked }
+            guard !blocked.isEmpty else { return }
+            logger.notice("Initial enumeration settled -- seizing \(blocked.count) blocked device(s)")
+            for device in blocked {
+                self.suppressor.seize(device)
             }
         }
     }
@@ -192,7 +188,7 @@ final class HIDDeviceManager: ObservableObject {
             }
         }
 
-        if blocked {
+        if blocked && !deferringInitialSeizures {
             suppressor.seize(hidDevice)
         }
     }
