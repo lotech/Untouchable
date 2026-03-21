@@ -8,21 +8,17 @@ struct MenuBarView: View {
     var body: some View {
         if deviceManager.suppressor.tccDenied {
             Section {
-                let names = deviceManager.suppressor.tccDeniedDeviceNames.sorted().joined(separator: ", ")
-                Text("Input Monitoring permission denied for: \(names). Remove and re-add Untouchable in System Settings > Privacy & Security > Input Monitoring.")
-                    .foregroundStyle(.red)
-                Button("Open Input Monitoring Settings...") {
-                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent") {
-                        NSWorkspace.shared.open(url)
-                    }
+                Button("Input Monitoring Denied") {
+                    showTCCAlert()
                 }
             }
         }
 
         if deviceManager.overdriveDetected {
             Section {
-                Text("USB Overdrive detected. It intercepts HID devices at the driver level, which prevents Untouchable from blocking input. Uninstall or disable USB Overdrive for affected devices.")
-                    .foregroundStyle(.orange)
+                Button("USB Overdrive Conflict") {
+                    showOverdriveAlert()
+                }
             }
         }
 
@@ -71,6 +67,32 @@ struct MenuBarView: View {
             NSApplication.shared.terminate(nil)
         }
         .keyboardShortcut("q")
+    }
+
+    private func showTCCAlert() {
+        let names = deviceManager.suppressor.tccDeniedDeviceNames.sorted().joined(separator: ", ")
+        let alert = NSAlert()
+        alert.messageText = "Input Monitoring Permission Denied"
+        alert.informativeText = "Untouchable cannot block input from: \(names).\n\nRemove and re-add Untouchable in System Settings > Privacy & Security > Input Monitoring, then relaunch."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Open Settings")
+        alert.addButton(withTitle: "OK")
+        NSApp.activate(ignoringOtherApps: true)
+        if alert.runModal() == .alertFirstButtonReturn {
+            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent") {
+                NSWorkspace.shared.open(url)
+            }
+        }
+    }
+
+    private func showOverdriveAlert() {
+        let alert = NSAlert()
+        alert.messageText = "USB Overdrive Detected"
+        alert.informativeText = "USB Overdrive intercepts HID devices at the driver level, which prevents Untouchable from blocking input.\n\nUninstall USB Overdrive and restart your Mac for Untouchable to work correctly."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "OK")
+        NSApp.activate(ignoringOtherApps: true)
+        alert.runModal()
     }
 
     @ViewBuilder
