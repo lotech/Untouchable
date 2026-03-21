@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.1.0] - 2026-03-21
+## [1.0.3] - 2026-03-21
 
 ### Added
 - Built-in trackpad suppression: Apple Internal Keyboard / Trackpad interfaces (which lack vendor/product IDs) are now enumerated and can be blocked like any external device
