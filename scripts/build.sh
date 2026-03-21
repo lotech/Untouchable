@@ -24,7 +24,7 @@ do_pull() {
     local branch
     branch="$(git rev-parse --abbrev-ref HEAD)"
     log "Pulling latest from origin/${branch}..."
-    git pull origin "${branch}"
+    git pull --rebase origin "${branch}"
     success "Up to date."
 }
 
