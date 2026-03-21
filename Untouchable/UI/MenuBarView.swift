@@ -8,7 +8,14 @@ struct MenuBarView: View {
     var body: some View {
         if deviceManager.suppressor.tccDenied {
             Section {
-                Button("Input Monitoring Denied") {
+                Text("Input Monitoring Denied")
+                    .foregroundStyle(.red)
+                Button("Open Input Monitoring Settings...") {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+                Button("Details...") {
                     showTCCAlert()
                 }
             }
