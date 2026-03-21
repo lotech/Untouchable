@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Redundant LSBackgroundOnly key from Info.plist (LSUIElement is sufficient for menu bar apps)
 
 ### Fixed
+- Apple Internal Keyboard / Trackpad interfaces skipped on launch: some interfaces lack the `BuiltIn` IOKit property; now also detects built-in devices by name prefix
 - Touchscreen input leaking through when blocked: matching criteria only covered 3 specific digitizer usages (TouchScreen, TouchPad, Digitizer), missing interfaces with other digitizer usages (Pen, MultiplePointDigitizer, DeviceConfiguration, etc.); now matches the entire Digitizer usage page
 - Ghost touches leaking through on multi-interface touchscreens: some HID interfaces failed to seize immediately after enumeration (IOReturn not-permitted); now retries up to 3 times with escalating delay
 - Seizures silently lost after system sleep/wake: IOKit releases exclusive device access when hardware powers down but fires no callbacks; now re-seizes all blocked devices on NSWorkspace.didWakeNotification

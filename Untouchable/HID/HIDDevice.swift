@@ -64,7 +64,10 @@ struct HIDDevice: Identifiable, Hashable {
         let entryID = IOHIDDeviceGetProperty(device, kIOHIDUniqueIDKey as CFString) as? Int
             ?? Int(bitPattern: Unmanaged.passUnretained(device).toOpaque())
 
-        let builtIn = IOHIDDeviceGetProperty(device, "BuiltIn" as CFString) as? Bool ?? false
+        // Some Apple Internal interfaces lack the BuiltIn property but can be
+        // identified by name. Fall back to name matching so we don't skip them.
+        let builtInProp = IOHIDDeviceGetProperty(device, "BuiltIn" as CFString) as? Bool ?? false
+        let builtIn = builtInProp || name.hasPrefix("Apple Internal")
 
         // Devices without vendor/product IDs are accepted only if they are built-in
         // (e.g. Apple Internal Keyboard / Trackpad). External devices without IDs are

@@ -180,7 +180,9 @@ final class HIDDeviceManager: ObservableObject {
         // connect time (e.g. after sleep/wake or USB hub re-enumeration).
         let vid = IOHIDDeviceGetProperty(device, kIOHIDVendorIDKey as CFString) as? Int
         let pid = IOHIDDeviceGetProperty(device, kIOHIDProductIDKey as CFString) as? Int
-        let builtIn = IOHIDDeviceGetProperty(device, "BuiltIn" as CFString) as? Bool ?? false
+        let builtInProp = IOHIDDeviceGetProperty(device, "BuiltIn" as CFString) as? Bool ?? false
+        let name = IOHIDDeviceGetProperty(device, kIOHIDProductKey as CFString) as? String ?? ""
+        let builtIn = builtInProp || name.hasPrefix("Apple Internal")
         let entryID = IOHIDDeviceGetProperty(device, kIOHIDUniqueIDKey as CFString) as? Int
             ?? Int(bitPattern: Unmanaged.passUnretained(device).toOpaque())
         let disconnectedID: String
@@ -202,7 +204,9 @@ final class HIDDeviceManager: ObservableObject {
     private func persistenceID(for device: IOHIDDevice) -> String {
         let vid = IOHIDDeviceGetProperty(device, kIOHIDVendorIDKey as CFString) as? Int
         let pid = IOHIDDeviceGetProperty(device, kIOHIDProductIDKey as CFString) as? Int
-        let builtIn = IOHIDDeviceGetProperty(device, "BuiltIn" as CFString) as? Bool ?? false
+        let builtInProp = IOHIDDeviceGetProperty(device, "BuiltIn" as CFString) as? Bool ?? false
+        let name = IOHIDDeviceGetProperty(device, kIOHIDProductKey as CFString) as? String ?? ""
+        let builtIn = builtInProp || name.hasPrefix("Apple Internal")
         if builtIn && vid == nil && pid == nil {
             return "builtin:trackpad"
         }
