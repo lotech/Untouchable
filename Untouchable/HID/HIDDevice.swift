@@ -12,8 +12,13 @@ struct HIDDevice: Identifiable, Hashable {
     /// Unique per-IOHIDDevice instance (IOKit registry entry ID).
     let id: String
 
-    /// Stable identifier for persistence: "vendorID:productID".
-    var persistenceID: String { "\(vendorID):\(productID)" }
+    /// Stable identifier for persistence: "vendorID:productID" or "builtin:trackpad".
+    var persistenceID: String {
+        if isBuiltIn && vendorID == 0 && productID == 0 {
+            return "builtin:trackpad"
+        }
+        return "\(vendorID):\(productID)"
+    }
 
     /// USB Vendor ID.
     let vendorID: Int
@@ -39,24 +44,40 @@ struct HIDDevice: Identifiable, Hashable {
     /// The underlying `IOHIDDevice` reference.
     var ioHIDDevice: IOHIDDevice?
 
+    /// Whether this is a built-in device (e.g. internal trackpad) that lacks vendor/product IDs.
+    let isBuiltIn: Bool
+
     // MARK: - Convenience init from IOHIDDevice
 
     init?(from device: IOHIDDevice, isBlocked: Bool = false) {
-        guard let vendorID = IOHIDDeviceGetProperty(device, kIOHIDVendorIDKey as CFString) as? Int,
-              let productID = IOHIDDeviceGetProperty(device, kIOHIDProductIDKey as CFString) as? Int else {
-            return nil
-        }
+        let vendorID = IOHIDDeviceGetProperty(device, kIOHIDVendorIDKey as CFString) as? Int
+        let productID = IOHIDDeviceGetProperty(device, kIOHIDProductIDKey as CFString) as? Int
 
         let name = IOHIDDeviceGetProperty(device, kIOHIDProductKey as CFString) as? String
             ?? "Unknown Device"
 
-        // Use the IOKit registry entry ID for a truly unique per-instance identifier
         let entryID = IOHIDDeviceGetProperty(device, kIOHIDUniqueIDKey as CFString) as? Int
             ?? Int(bitPattern: Unmanaged.passUnretained(device).toOpaque())
-        self.id = "\(vendorID):\(productID):\(entryID)"
 
-        self.vendorID = vendorID
-        self.productID = productID
+        let builtIn = IOHIDDeviceGetProperty(device, "BuiltIn" as CFString) as? Bool ?? false
+
+        // Devices without vendor/product IDs are accepted only if they are built-in
+        // (e.g. Apple Internal Keyboard / Trackpad). External devices without IDs are
+        // still skipped because we cannot persist their blocked state reliably.
+        if let vid = vendorID, let pid = productID {
+            self.vendorID = vid
+            self.productID = pid
+            self.id = "\(vid):\(pid):\(entryID)"
+            self.isBuiltIn = builtIn
+        } else if builtIn {
+            self.vendorID = 0
+            self.productID = 0
+            self.id = "builtin:\(entryID)"
+            self.isBuiltIn = true
+        } else {
+            return nil
+        }
+
         self.name = name
         self.isBlocked = isBlocked
         self.ioHIDDevice = device
@@ -65,17 +86,19 @@ struct HIDDevice: Identifiable, Hashable {
 
         // Detect virtual devices by checking transport or name patterns
         let transport = IOHIDDeviceGetProperty(device, kIOHIDTransportKey as CFString) as? String ?? ""
-        let isBuiltIn = IOHIDDeviceGetProperty(device, "BuiltIn" as CFString) as? Bool ?? false
         let nameLC = name.lowercased()
         self.isVirtual = transport.lowercased() == "virtual"
             || nameLC.contains("virtual")
             || nameLC.contains("karabiner")
-            || (transport.isEmpty && !isBuiltIn && vendorID == 0)
+            || (transport.isEmpty && !builtIn && (vendorID ?? 0) == 0)
     }
 
-    /// Display name with disambiguation for duplicate device names.
+    /// Display name, simplified for built-in devices.
     var displayName: String {
-        name
+        if isBuiltIn && name.lowercased().contains("keyboard") {
+            return "Built-in Trackpad"
+        }
+        return name
     }
 
     // MARK: - Hashable

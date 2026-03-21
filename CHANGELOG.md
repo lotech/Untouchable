@@ -7,14 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- TCC denial detection: menu bar shows warning with device names when Input Monitoring permission is stale or denied, with button to open System Settings
+- Built-in trackpad suppression: Apple Internal Keyboard / Trackpad HID interfaces (which lack vendor/product IDs) are now enumerated and can be toggled like any other device
+- About window showing app icon, version, build number, copyright, and GitHub link
+
 ### Changed
 - Upgraded HID log levels from info to notice so messages persist in log store (info is not persisted by default)
 - Changed HID log privacy annotations from .private to .public so device IDs are visible in log output
 - Added usage page/usage fields to HIDDevice for diagnosing which HID interface types are enumerated
 - Added error logging when HIDDevice.init fails (skipped interfaces with no vendor/product ID)
+- Built-in trackpad displays as "Built-in Trackpad" instead of "Apple Internal Keyboard / Trackpad"
 
-### Added
-- About window showing app icon, version, build number, copyright, and GitHub link
+### Fixed
+- Build script pull failing on divergent branches (now uses --rebase)
 - Entitlements verification step in release script (rejects get-task-allow before notarization)
 - Mach-O binary verification step in CI workflow
 - Xcode version pin (16.2) in CI workflow for reproducible builds
