@@ -7,53 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- Build script: `--reset-tcc` flag and menu option (10) to reset Input Monitoring permission via `tccutil`
-- TCC denial detection: menu bar shows warning with device names when Input Monitoring permission is stale or denied, with button to open System Settings
-- Built-in trackpad suppression: Apple Internal Keyboard / Trackpad HID interfaces (which lack vendor/product IDs) are now enumerated and can be toggled like any other device
-- About window showing app icon, version, build number, copyright, and GitHub link
+## [1.1.0] - 2026-03-21
 
-### Changed
-- Upgraded HID log levels from info to notice so messages persist in log store (info is not persisted by default)
-- Changed HID log privacy annotations from .private to .public so device IDs are visible in log output
-- Added usage page/usage fields to HIDDevice for diagnosing which HID interface types are enumerated
-- Added error logging when HIDDevice.init fails (skipped interfaces with no vendor/product ID)
-- Built-in trackpad displays as "Built-in Trackpad" instead of "Apple Internal Keyboard / Trackpad"
+### Added
+- Built-in trackpad suppression: Apple Internal Keyboard / Trackpad interfaces (which lack vendor/product IDs) are now enumerated and can be blocked like any external device
+- TCC denial detection: menu bar shows warning with device names when Input Monitoring permission is missing or stale, with button to open System Settings
+- About window showing app icon, version, build number, copyright, and GitHub link
+- Build script: `--reset-tcc` flag and menu option to reset Input Monitoring permission via `tccutil`
+- Automatic retry for failed device seizures (up to 3 attempts with escalating delay) for multi-interface touchscreens
 
 ### Fixed
+- Blocked devices not suppressed on launch: IOKit reports success for seizure during initial enumeration but does not enforce it; seizure is now deferred until IOKit settles, with explicit run loop scheduling
+- Touchscreen input leaking through when blocked: HID matching only covered 3 specific digitizer usages, missing interfaces like Pen, MultiplePointDigitizer, and DeviceConfiguration; now matches the entire Digitizer usage page
 - Ghost touches caused by multiple Untouchable instances competing for exclusive HID seizure: new instance now terminates any existing instances on launch
-- Build script pull failing on divergent branches (now uses --rebase)
-- Entitlements verification step in release script (rejects get-task-allow before notarization)
-- Mach-O binary verification step in CI workflow
-- Xcode version pin (16.2) in CI workflow for reproducible builds
-- System wake observer: re-seizes all blocked devices after sleep/wake (IOKit can silently lose seizures when hardware powers down)
-- Automatic retry for failed device seizures (up to 3 attempts with escalating delay) -- catches multi-interface touchscreens where some HID interfaces are not immediately ready for exclusive access
+- Seizures silently lost after system sleep/wake: now re-seizes all blocked devices on wake notification
+- Blocked devices not re-seized on launch until user opens the menu (AppSettings was nil during initial enumeration)
+- Apple Internal Keyboard / Trackpad interfaces skipped when they lack the `BuiltIn` IOKit property; now also detects built-in devices by name prefix
+- Release script: version sync, signing identity, DMG codesigning, notarization status checking, and entitlements verification
 
 ### Changed
-- HIDDeviceManager now receives AppSettings at init, ensuring blocked devices are seized immediately on launch instead of waiting for the menu to be opened
-- Balanced Unmanaged.passRetained reference with explicit release in deinit (fixes potential memory leak)
-- TCC denial error code replaced with named constant `kIOReturnNotPermitted`
-- Build script install uses poll-based process wait instead of fixed sleep
-- Toggle binding in MenuBarView uses the new value directly instead of re-reading from device list
+- HIDDeviceManager receives AppSettings at init for immediate seizure of persisted blocked devices
+- Built-in trackpad displays as "Built-in Trackpad" instead of "Apple Internal Keyboard / Trackpad"
+- HID log levels upgraded to notice (persisted) with public privacy for device IDs
+- Balanced Unmanaged.passRetained reference with explicit release in deinit
 
 ### Removed
-- Dead DeviceRowView.swift file and its Xcode project references (replaced by inline toggles in MenuBarView since v1.0.0)
-- Redundant LSBackgroundOnly key from Info.plist (LSUIElement is sufficient for menu bar apps)
-
-### Fixed
-- Apple Internal Keyboard / Trackpad interfaces skipped on launch: some interfaces lack the `BuiltIn` IOKit property; now also detects built-in devices by name prefix
-- Touchscreen input leaking through when blocked: matching criteria only covered 3 specific digitizer usages (TouchScreen, TouchPad, Digitizer), missing interfaces with other digitizer usages (Pen, MultiplePointDigitizer, DeviceConfiguration, etc.); now matches the entire Digitizer usage page
-- Ghost touches leaking through on multi-interface touchscreens: some HID interfaces failed to seize immediately after enumeration (IOReturn not-permitted); now retries up to 3 times with escalating delay
-- Seizures silently lost after system sleep/wake: IOKit releases exclusive device access when hardware powers down but fires no callbacks; now re-seizes all blocked devices on NSWorkspace.didWakeNotification
-- Blocked devices not re-seized on launch until user opens the menu (AppSettings was nil during initial IOHIDManager matching callbacks)
-- Release script leaving Info.plist version bump uncommitted, causing dirty working tree after release (now commits the version bump before tagging)
-- Release script requiring manual CHANGELOG.md update before release (now automatically moves [Unreleased] to versioned section)
-- Release script not passing Developer ID signing identity to xcodebuild (fell back to Apple Development, causing Gatekeeper rejection)
-- Release DMG not codesigned (notarization requires both the app and DMG to be signed)
-- Release script reporting notarization success on "Invalid" status (notarytool returns exit 0 even on rejection; now checks actual status output and auto-fetches rejection log)
-- Notarization rejection: Sparkle framework binaries bundled unsigned (removed unused Sparkle SPM dependency; will re-add when wiring up updates)
-- Notarization rejection: com.apple.security.get-task-allow entitlement auto-injected into release builds (disabled CODE_SIGN_INJECT_BASE_ENTITLEMENTS for release)
-- Version numbers out of sync between Info.plist and release tag (release script now updates CFBundleShortVersionString, CFBundleVersion, and MARKETING_VERSION from the tag)
+- Dead DeviceRowView.swift (replaced by inline toggles in MenuBarView since v1.0.0)
+- Redundant LSBackgroundOnly key from Info.plist
 
 ## [1.0.1] - 2026-03-20
 
