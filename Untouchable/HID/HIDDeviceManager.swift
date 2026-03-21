@@ -33,6 +33,14 @@ final class HIDDeviceManager: ObservableObject {
         groupedDevices(from: devices.filter { $0.isVirtual })
     }
 
+    /// True when USB Overdrive VirtualHID proxies are detected. Overdrive's DriverKit
+    /// extension intercepts physical HID devices and forwards events through synthetic
+    /// devices, bypassing userspace seizure. Blocking will not work until Overdrive is
+    /// removed or disabled.
+    var overdriveDetected: Bool {
+        devices.contains { $0.isOverdriveVirtual }
+    }
+
     private func groupedDevices(from list: [HIDDevice]) -> [DeviceGroup] {
         var groups: [String: DeviceGroup] = [:]
         for device in list {
@@ -154,6 +162,10 @@ final class HIDDeviceManager: ObservableObject {
         if !devices.contains(where: { $0.id == hidDevice.id }) {
             devices.append(hidDevice)
             logger.notice("Device connected: \(hidDevice.name, privacy: .public) (\(hidDevice.id, privacy: .public)) usagePage=\(hidDevice.usagePage) usage=\(hidDevice.usage) virtual=\(hidDevice.isVirtual) blocked=\(blocked)")
+
+            if hidDevice.isOverdriveVirtual {
+                logger.warning("USB Overdrive VirtualHID detected: \(hidDevice.name, privacy: .public) (\(hidDevice.id, privacy: .public)) -- Overdrive intercepts HID at the driver level, bypassing userspace seizure")
+            }
         }
 
         if blocked {
