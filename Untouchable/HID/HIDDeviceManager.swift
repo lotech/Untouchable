@@ -106,17 +106,18 @@ final class HIDDeviceManager: ObservableObject {
         manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
         guard let manager = manager else { return }
 
+        // Match mice, pointers, and ALL digitizer-page devices.
+        // Touchscreens often expose multiple HID interfaces with different
+        // digitizer usages (TouchScreen, Pen, MultiplePointDigitizer,
+        // DeviceConfiguration, etc.). Matching the entire digitizer usage page
+        // ensures we discover -- and can seize -- every interface, preventing
+        // touch input from leaking through unmatched interfaces.
         let matchingCriteria: [[String: Any]] = [
             [kIOHIDDeviceUsagePageKey: kHIDPage_GenericDesktop,
              kIOHIDDeviceUsageKey: kHIDUsage_GD_Mouse],
             [kIOHIDDeviceUsagePageKey: kHIDPage_GenericDesktop,
              kIOHIDDeviceUsageKey: kHIDUsage_GD_Pointer],
-            [kIOHIDDeviceUsagePageKey: kHIDPage_Digitizer,
-             kIOHIDDeviceUsageKey: kHIDUsage_Dig_TouchScreen],
-            [kIOHIDDeviceUsagePageKey: kHIDPage_Digitizer,
-             kIOHIDDeviceUsageKey: kHIDUsage_Dig_TouchPad],
-            [kIOHIDDeviceUsagePageKey: kHIDPage_Digitizer,
-             kIOHIDDeviceUsageKey: kHIDUsage_Dig_Digitizer],
+            [kIOHIDDeviceUsagePageKey: kHIDPage_Digitizer],
         ]
 
         IOHIDManagerSetDeviceMatchingMultiple(manager, matchingCriteria as CFArray)
