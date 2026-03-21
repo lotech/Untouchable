@@ -68,6 +68,10 @@ struct MenuBarView: View {
         }
         .disabled(true)
 
+        Button("Reset Permissions & Relaunch") {
+            resetTCCAndRelaunch()
+        }
+
         Divider()
 
         Button("Quit Untouchable") {
@@ -100,6 +104,36 @@ struct MenuBarView: View {
         alert.addButton(withTitle: "OK")
         NSApp.activate(ignoringOtherApps: true)
         alert.runModal()
+    }
+
+    private func resetTCCAndRelaunch() {
+        let bundleID = Bundle.main.bundleIdentifier ?? "vision.lotech.Untouchable"
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/tccutil")
+        process.arguments = ["reset", "ListenEvent", bundleID]
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            let alert = NSAlert()
+            alert.messageText = "Failed to Reset Permissions"
+            alert.informativeText = "tccutil failed: \(error.localizedDescription)"
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "OK")
+            NSApp.activate(ignoringOtherApps: true)
+            alert.runModal()
+            return
+        }
+
+        // Relaunch ourselves
+        guard let appURL = Bundle.main.bundleURL as URL? else { return }
+        let config = NSWorkspace.OpenConfiguration()
+        config.createsNewApplicationInstance = true
+        NSWorkspace.shared.openApplication(at: appURL, configuration: config) { _, _ in
+            DispatchQueue.main.async {
+                NSApplication.shared.terminate(nil)
+            }
+        }
     }
 
     @ViewBuilder
