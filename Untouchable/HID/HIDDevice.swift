@@ -30,6 +30,12 @@ struct HIDDevice: Identifiable, Hashable {
     /// Whether this device is virtual (software-created, no physical hardware).
     let isVirtual: Bool
 
+    /// HID primary usage page (e.g. GenericDesktop=0x01, Digitizer=0x0D).
+    let usagePage: Int
+
+    /// HID primary usage (e.g. Mouse=0x02, TouchScreen=0x04).
+    let usage: Int
+
     /// The underlying `IOHIDDevice` reference.
     var ioHIDDevice: IOHIDDevice?
 
@@ -54,6 +60,8 @@ struct HIDDevice: Identifiable, Hashable {
         self.name = name
         self.isBlocked = isBlocked
         self.ioHIDDevice = device
+        self.usagePage = IOHIDDeviceGetProperty(device, kIOHIDPrimaryUsagePageKey as CFString) as? Int ?? 0
+        self.usage = IOHIDDeviceGetProperty(device, kIOHIDPrimaryUsageKey as CFString) as? Int ?? 0
 
         // Detect virtual devices by checking transport or name patterns
         let transport = IOHIDDeviceGetProperty(device, kIOHIDTransportKey as CFString) as? String ?? ""
