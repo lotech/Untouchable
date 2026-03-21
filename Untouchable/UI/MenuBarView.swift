@@ -19,6 +19,13 @@ struct MenuBarView: View {
             }
         }
 
+        if deviceManager.overdriveDetected {
+            Section {
+                Text("USB Overdrive detected. It intercepts HID devices at the driver level, which prevents Untouchable from blocking input. Uninstall or disable USB Overdrive for affected devices.")
+                    .foregroundStyle(.orange)
+            }
+        }
+
         Section("Devices") {
             let physical = deviceManager.physicalDeviceGroups
             if physical.isEmpty {
