@@ -6,6 +6,19 @@ struct MenuBarView: View {
     @ObservedObject var appSettings: AppSettings
 
     var body: some View {
+        if deviceManager.suppressor.tccDenied {
+            Section {
+                let names = deviceManager.suppressor.tccDeniedDeviceNames.sorted().joined(separator: ", ")
+                Text("Input Monitoring permission denied for: \(names). Remove and re-add Untouchable in System Settings > Privacy & Security > Input Monitoring.")
+                    .foregroundStyle(.red)
+                Button("Open Input Monitoring Settings...") {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+            }
+        }
+
         Section("Devices") {
             let physical = deviceManager.physicalDeviceGroups
             if physical.isEmpty {

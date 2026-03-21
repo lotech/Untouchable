@@ -40,7 +40,7 @@ final class HIDDeviceManager: ObservableObject {
             if groups[pid] == nil {
                 groups[pid] = DeviceGroup(
                     id: pid,
-                    name: device.name,
+                    name: device.displayName,
                     isVirtual: device.isVirtual,
                     isBlocked: device.isBlocked
                 )
@@ -146,7 +146,7 @@ final class HIDDeviceManager: ObservableObject {
             let rawName = IOHIDDeviceGetProperty(device, kIOHIDProductKey as CFString) as? String ?? "(no name)"
             let usagePage = IOHIDDeviceGetProperty(device, kIOHIDPrimaryUsagePageKey as CFString) as? Int ?? -1
             let usage = IOHIDDeviceGetProperty(device, kIOHIDPrimaryUsageKey as CFString) as? Int ?? -1
-            logger.error("Skipped HID interface (no vendor/product ID): name=\(rawName, privacy: .public) usagePage=\(usagePage) usage=\(usage)")
+            logger.error("Skipped HID interface (no vendor/product ID, not built-in): name=\(rawName, privacy: .public) usagePage=\(usagePage) usage=\(usage)")
             return
         }
 
@@ -165,11 +165,17 @@ final class HIDDeviceManager: ObservableObject {
         // Match by unique ID rather than object reference -- the IOHIDDevice
         // pointer in the removal callback may differ from the one stored at
         // connect time (e.g. after sleep/wake or USB hub re-enumeration).
-        let vid = IOHIDDeviceGetProperty(device, kIOHIDVendorIDKey as CFString) as? Int ?? 0
-        let pid = IOHIDDeviceGetProperty(device, kIOHIDProductIDKey as CFString) as? Int ?? 0
+        let vid = IOHIDDeviceGetProperty(device, kIOHIDVendorIDKey as CFString) as? Int
+        let pid = IOHIDDeviceGetProperty(device, kIOHIDProductIDKey as CFString) as? Int
+        let builtIn = IOHIDDeviceGetProperty(device, "BuiltIn" as CFString) as? Bool ?? false
         let entryID = IOHIDDeviceGetProperty(device, kIOHIDUniqueIDKey as CFString) as? Int
             ?? Int(bitPattern: Unmanaged.passUnretained(device).toOpaque())
-        let disconnectedID = "\(vid):\(pid):\(entryID)"
+        let disconnectedID: String
+        if builtIn && vid == nil && pid == nil {
+            disconnectedID = "builtin:\(entryID)"
+        } else {
+            disconnectedID = "\(vid ?? 0):\(pid ?? 0):\(entryID)"
+        }
 
         if let index = devices.firstIndex(where: { $0.id == disconnectedID }) {
             let removed = devices.remove(at: index)
@@ -181,9 +187,13 @@ final class HIDDeviceManager: ObservableObject {
     }
 
     private func persistenceID(for device: IOHIDDevice) -> String {
-        let vid = IOHIDDeviceGetProperty(device, kIOHIDVendorIDKey as CFString) as? Int ?? 0
-        let pid = IOHIDDeviceGetProperty(device, kIOHIDProductIDKey as CFString) as? Int ?? 0
-        return "\(vid):\(pid)"
+        let vid = IOHIDDeviceGetProperty(device, kIOHIDVendorIDKey as CFString) as? Int
+        let pid = IOHIDDeviceGetProperty(device, kIOHIDProductIDKey as CFString) as? Int
+        let builtIn = IOHIDDeviceGetProperty(device, "BuiltIn" as CFString) as? Bool ?? false
+        if builtIn && vid == nil && pid == nil {
+            return "builtin:trackpad"
+        }
+        return "\(vid ?? 0):\(pid ?? 0)"
     }
 
     // MARK: - Public API

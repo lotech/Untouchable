@@ -14,7 +14,7 @@ private let logger = Logger(subsystem: "vision.lotech.Untouchable", category: "H
 /// - Retry failed seizures: some HID interfaces (especially on multi-interface
 ///   touchscreens) may not be ready for exclusive access immediately after
 ///   enumeration. A delayed retry catches these cases.
-final class HIDEventSuppressor {
+final class HIDEventSuppressor: ObservableObject {
 
     /// IOReturn code when TCC (privacy framework) denies device access.
     private static let kIOReturnNotPermitted: IOReturn = -536870174
@@ -30,6 +30,13 @@ final class HIDEventSuppressor {
 
     /// Tracks retry counts for interfaces that failed to seize.
     private var retryCounts: [String: Int] = [:]
+
+    /// Set to `true` when at least one device seizure fails due to TCC denial.
+    /// The UI observes this to prompt the user to re-grant Input Monitoring.
+    @Published var tccDenied: Bool = false
+
+    /// Device names that failed due to TCC denial (for display in the alert).
+    @Published var tccDeniedDeviceNames: Set<String> = []
 
     // MARK: - Public API
 
@@ -52,6 +59,10 @@ final class HIDEventSuppressor {
 
             seizedDevices[device.id] = ioDevice
             retryCounts.removeValue(forKey: device.id)
+            tccDeniedDeviceNames.remove(device.name)
+            if tccDeniedDeviceNames.isEmpty {
+                tccDenied = false
+            }
             logger.notice("Seized device: \(device.name, privacy: .public) (\(device.id, privacy: .public))")
         } else {
             let retries = retryCounts[device.id] ?? 0
@@ -66,6 +77,8 @@ final class HIDEventSuppressor {
             } else {
                 retryCounts.removeValue(forKey: device.id)
                 if result == Self.kIOReturnNotPermitted {
+                    tccDenied = true
+                    tccDeniedDeviceNames.insert(device.name)
                     logger.warning("Cannot seize \(device.name, privacy: .public) interface \(device.id, privacy: .public) after \(Self.maxRetries) attempts (TCC denied) -- input from this interface may leak through")
                 } else {
                     logger.error("Failed to seize \(device.name, privacy: .public) interface \(device.id, privacy: .public) after \(Self.maxRetries) attempts: IOReturn \(result)")
