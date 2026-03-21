@@ -84,7 +84,7 @@ final class HIDDeviceManager: ObservableObject {
         // hot-plugged devices after launch still get seized immediately.
         self.deferringInitialSeizures = true
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
             self.deferringInitialSeizures = false
             let blocked = self.devices.filter { $0.isBlocked }
