@@ -77,9 +77,14 @@ final class HIDEventSuppressor: ObservableObject {
             } else {
                 retryCounts.removeValue(forKey: device.id)
                 if result == Self.kIOReturnNotPermitted {
+                    // kIOReturnNotPermitted can mean either:
+                    // 1. TCC (Input Monitoring) permission not granted for this binary
+                    // 2. Another process already holds exclusive seizure on this device
+                    // We cannot distinguish these at the IOKit level, but single-instance
+                    // enforcement in AppDelegate eliminates case 2 on normal launches.
                     tccDenied = true
                     tccDeniedDeviceNames.insert(device.name)
-                    logger.warning("Cannot seize \(device.name, privacy: .public) interface \(device.id, privacy: .public) after \(Self.maxRetries) attempts (TCC denied) -- input from this interface may leak through")
+                    logger.warning("Cannot seize \(device.name, privacy: .public) interface \(device.id, privacy: .public) after \(Self.maxRetries) attempts (not permitted: TCC denial or another process holds seizure) -- input from this interface may leak through")
                 } else {
                     logger.error("Failed to seize \(device.name, privacy: .public) interface \(device.id, privacy: .public) after \(Self.maxRetries) attempts: IOReturn \(result)")
                 }

@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Built-in trackpad displays as "Built-in Trackpad" instead of "Apple Internal Keyboard / Trackpad"
 
 ### Fixed
+- Ghost touches caused by multiple Untouchable instances competing for exclusive HID seizure: new instance now terminates any existing instances on launch
 - Build script pull failing on divergent branches (now uses --rebase)
 - Entitlements verification step in release script (rejects get-task-allow before notarization)
 - Mach-O binary verification step in CI workflow
