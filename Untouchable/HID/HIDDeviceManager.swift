@@ -66,31 +66,12 @@ final class HIDDeviceManager: ObservableObject {
     /// Retains `self` for the C callback context pointer; released in `deinit`.
     private var retainedSelf: Unmanaged<HIDDeviceManager>?
 
-    /// True during the initial enumeration burst. Seizures are deferred until
-    /// IOKit has finished setting up, because IOHIDDeviceOpen can return success
-    /// during initial enumeration without the kernel actually enforcing the seizure.
-    private var deferringInitialSeizures = true
-
     // MARK: - Init
 
     init(settings: AppSettings) {
         self.appSettings = settings
         setupManager()
         observeSystemWake()
-
-        // Defer initial seizures: IOHIDDeviceOpen returns success during the
-        // initial enumeration burst but the kernel does not enforce the seizure.
-        // Wait for enumeration to settle, then seize all blocked devices.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-            guard let self = self else { return }
-            self.deferringInitialSeizures = false
-            let blocked = self.devices.filter { $0.isBlocked }
-            guard !blocked.isEmpty else { return }
-            logger.notice("Initial enumeration settled -- seizing \(blocked.count) blocked device(s)")
-            for device in blocked {
-                self.suppressor.seize(device)
-            }
-        }
     }
 
     deinit {
@@ -188,7 +169,7 @@ final class HIDDeviceManager: ObservableObject {
             }
         }
 
-        if blocked && !deferringInitialSeizures {
+        if blocked {
             suppressor.seize(hidDevice)
         }
     }
