@@ -58,6 +58,12 @@ final class HIDEventSuppressor: ObservableObject {
         if seizedDevices[device.id] != nil { return }
         if tccDeniedIDs.contains(device.id) { return }
 
+        // Close any existing non-exclusive open (e.g. from IOHIDManagerOpen)
+        // before opening with exclusive seizure. IOKit does not upgrade an
+        // existing non-exclusive open to exclusive; the close-then-reopen
+        // cycle is what makes the manual toggle path work.
+        IOHIDDeviceClose(ioDevice, IOOptionBits(kIOHIDOptionsTypeNone))
+
         let result = IOHIDDeviceOpen(ioDevice, IOOptionBits(kIOHIDOptionsTypeSeizeDevice))
         if result == kIOReturnSuccess {
             // Register a no-op callback -- required by IOKit even when seizing
