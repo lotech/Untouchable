@@ -24,13 +24,15 @@ Untouchable sits in your menu bar and lists every HID pointing device connected 
 
 ## Features
 
-- Enumerates all HID pointing devices (mice, trackpads, touchscreens, digitizers)
+- Enumerates all HID pointing devices (mice, trackpads, touchscreens, digitizers) including built-in trackpads
 - Per-device suppression toggle -- seized devices produce zero events system-wide
 - Remembers blocked devices across launches (persisted in UserDefaults)
-- Auto-reapplies suppression when a previously-blocked device reconnects
+- Auto-reapplies suppression on launch, device reconnect, and system wake
 - Live connect/disconnect detection
+- TCC permission status: warns in the menu bar when Input Monitoring permission is missing
+- Single-instance enforcement: prevents ghost touches from competing seizures
 - Runs silently in the menu bar (no Dock icon, no window)
-- Launch at Login support.
+- Launch at Login support
 
 ## Install
 
@@ -65,7 +67,7 @@ The interactive build menu lets you:
 +---------------------------------------+
 ```
 
-Or use flags for CI/scripting: `--pull`, `--open`, `--build`, `--install`, `--clean`.
+Or use flags for CI/scripting: `--pull`, `--open`, `--build`, `--install`, `--clean`, `--reset-tcc`.
 
 ### Requirements
 
