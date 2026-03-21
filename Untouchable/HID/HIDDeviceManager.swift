@@ -66,6 +66,11 @@ final class HIDDeviceManager: ObservableObject {
     /// Retains `self` for the C callback context pointer; released in `deinit`.
     private var retainedSelf: Unmanaged<HIDDeviceManager>?
 
+    /// True during the initial enumeration burst. Seizures are skipped entirely
+    /// (not attempted) until the deferred seize timer fires, because IOKit
+    /// reports success during enumeration but does not enforce the seizure.
+    private var deferringInitialSeizures = false
+
     // MARK: - Init
 
     init(settings: AppSettings) {
@@ -73,24 +78,20 @@ final class HIDDeviceManager: ObservableObject {
         setupManager()
         observeSystemWake()
 
-        // Auto-toggle: mirror the manual release-then-seize cycle that users
-        // perform to make seizure stick. The initial seize during enumeration
-        // reports success but does not take effect. A full release + delayed
-        // re-seize (exactly matching the manual toggle path) resolves this.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { [weak self] in
+        // Skip the initial seize in deviceConnected entirely. Instead, wait for
+        // IOKit to fully settle, then seize blocked devices. The initial seize
+        // always reports success but never takes effect. Using a flag so
+        // hot-plugged devices after launch still get seized immediately.
+        self.deferringInitialSeizures = true
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
             guard let self = self else { return }
+            self.deferringInitialSeizures = false
             let blocked = self.devices.filter { $0.isBlocked }
             guard !blocked.isEmpty else { return }
-            logger.notice("Auto-toggle: releasing \(blocked.count) blocked device(s)")
-            for device in blocked {
-                self.suppressor.release(device)
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-                guard let self = self else { return }
-                logger.notice("Auto-toggle: re-seizing \(blocked.count) device(s)")
-                for device in blocked {
-                    self.suppressor.seize(device)
-                }
+            logger.notice("Deferred seize: seizing \(blocked.count) blocked device(s)")
+            for i in self.devices.indices where self.devices[i].isBlocked {
+                self.suppressor.seize(self.devices[i])
             }
         }
     }
@@ -190,7 +191,7 @@ final class HIDDeviceManager: ObservableObject {
             }
         }
 
-        if blocked {
+        if blocked && !deferringInitialSeizures {
             suppressor.seize(hidDevice)
         }
     }
