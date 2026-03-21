@@ -87,7 +87,7 @@ final class HIDDeviceManager: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             guard let self = self else { return }
-            logger.info("System wake detected -- re-seizing blocked devices")
+            logger.notice("System wake detected -- re-seizing blocked devices")
             self.suppressor.reseizeAll()
             self.refreshDevices()
             self.reapplyBlockedDevices()
@@ -142,12 +142,18 @@ final class HIDDeviceManager: ObservableObject {
     private func deviceConnected(_ device: IOHIDDevice) {
         let persistID = persistenceID(for: device)
         let blocked = appSettings.isBlocked(persistID)
-        guard let hidDevice = HIDDevice(from: device, isBlocked: blocked) else { return }
+        guard let hidDevice = HIDDevice(from: device, isBlocked: blocked) else {
+            let rawName = IOHIDDeviceGetProperty(device, kIOHIDProductKey as CFString) as? String ?? "(no name)"
+            let usagePage = IOHIDDeviceGetProperty(device, kIOHIDPrimaryUsagePageKey as CFString) as? Int ?? -1
+            let usage = IOHIDDeviceGetProperty(device, kIOHIDPrimaryUsageKey as CFString) as? Int ?? -1
+            logger.error("Skipped HID interface (no vendor/product ID): name=\(rawName, privacy: .public) usagePage=\(usagePage) usage=\(usage)")
+            return
+        }
 
         // Deduplicate by unique instance ID
         if !devices.contains(where: { $0.id == hidDevice.id }) {
             devices.append(hidDevice)
-            logger.info("Device connected: \(hidDevice.name, privacy: .private) (\(hidDevice.id, privacy: .private)) virtual=\(hidDevice.isVirtual)")
+            logger.notice("Device connected: \(hidDevice.name, privacy: .public) (\(hidDevice.id, privacy: .public)) usagePage=\(hidDevice.usagePage) usage=\(hidDevice.usage) virtual=\(hidDevice.isVirtual) blocked=\(blocked)")
         }
 
         if blocked {
@@ -168,9 +174,9 @@ final class HIDDeviceManager: ObservableObject {
         if let index = devices.firstIndex(where: { $0.id == disconnectedID }) {
             let removed = devices.remove(at: index)
             suppressor.releaseByID(removed.id)
-            logger.info("Device disconnected: \(removed.name, privacy: .private) (\(removed.id, privacy: .private))")
+            logger.notice("Device disconnected: \(removed.name, privacy: .public) (\(removed.id, privacy: .public))")
         } else {
-            logger.warning("Removal callback for unknown device id=\(disconnectedID, privacy: .private)")
+            logger.error("Removal callback for unknown device id=\(disconnectedID, privacy: .public)")
         }
     }
 

@@ -36,7 +36,7 @@ final class HIDEventSuppressor {
     /// Seizes the given device, suppressing all of its HID events.
     func seize(_ device: HIDDevice) {
         guard let ioDevice = device.ioHIDDevice else {
-            logger.warning("Cannot seize \(device.name, privacy: .private): no IOHIDDevice ref")
+            logger.warning("Cannot seize \(device.name, privacy: .public): no IOHIDDevice ref")
             return
         }
 
@@ -52,13 +52,13 @@ final class HIDEventSuppressor {
 
             seizedDevices[device.id] = ioDevice
             retryCounts.removeValue(forKey: device.id)
-            logger.info("Seized device: \(device.name, privacy: .private) (\(device.id, privacy: .private))")
+            logger.notice("Seized device: \(device.name, privacy: .public) (\(device.id, privacy: .public))")
         } else {
             let retries = retryCounts[device.id] ?? 0
             if retries < Self.maxRetries {
                 retryCounts[device.id] = retries + 1
                 let attempt = retries + 1
-                logger.info("Seize attempt \(attempt)/\(Self.maxRetries) failed for \(device.name, privacy: .private) interface \(device.id, privacy: .private) (IOReturn \(result)) -- retrying in \(Self.retryDelay)s")
+                logger.notice("Seize attempt \(attempt)/\(Self.maxRetries) failed for \(device.name, privacy: .public) interface \(device.id, privacy: .public) (IOReturn \(result)) -- retrying in \(Self.retryDelay)s")
                 let deviceCopy = device
                 DispatchQueue.main.asyncAfter(deadline: .now() + Self.retryDelay * Double(attempt)) {
                     self.seize(deviceCopy)
@@ -66,9 +66,9 @@ final class HIDEventSuppressor {
             } else {
                 retryCounts.removeValue(forKey: device.id)
                 if result == Self.kIOReturnNotPermitted {
-                    logger.warning("Cannot seize \(device.name, privacy: .private) interface \(device.id, privacy: .private) after \(Self.maxRetries) attempts (TCC denied) -- input from this interface may leak through")
+                    logger.warning("Cannot seize \(device.name, privacy: .public) interface \(device.id, privacy: .public) after \(Self.maxRetries) attempts (TCC denied) -- input from this interface may leak through")
                 } else {
-                    logger.error("Failed to seize \(device.name, privacy: .private) interface \(device.id, privacy: .private) after \(Self.maxRetries) attempts: IOReturn \(result)")
+                    logger.error("Failed to seize \(device.name, privacy: .public) interface \(device.id, privacy: .public) after \(Self.maxRetries) attempts: IOReturn \(result)")
                 }
             }
         }
@@ -85,7 +85,7 @@ final class HIDEventSuppressor {
 
         IOHIDDeviceRegisterInputValueCallback(ioDevice, nil, nil)
         IOHIDDeviceClose(ioDevice, IOOptionBits(kIOHIDOptionsTypeNone))
-        logger.info("Released device: \(deviceID, privacy: .private)")
+        logger.notice("Released device: \(deviceID, privacy: .public)")
     }
 
     /// Re-seizes all currently seized devices by closing and re-opening them.
@@ -103,9 +103,9 @@ final class HIDEventSuppressor {
             let result = IOHIDDeviceOpen(ioDevice, IOOptionBits(kIOHIDOptionsTypeSeizeDevice))
             if result == kIOReturnSuccess {
                 IOHIDDeviceRegisterInputValueCallback(ioDevice, { _, _, _, _ in }, nil)
-                logger.info("Re-seized device after wake: \(id, privacy: .private)")
+                logger.notice("Re-seized device after wake: \(id, privacy: .public)")
             } else {
-                logger.error("Failed to re-seize device after wake: \(id, privacy: .private) IOReturn \(result)")
+                logger.error("Failed to re-seize device after wake: \(id, privacy: .public) IOReturn \(result)")
                 seizedDevices.removeValue(forKey: id)
             }
         }
@@ -116,7 +116,7 @@ final class HIDEventSuppressor {
         for (id, ioDevice) in seizedDevices {
             IOHIDDeviceRegisterInputValueCallback(ioDevice, nil, nil)
             IOHIDDeviceClose(ioDevice, IOOptionBits(kIOHIDOptionsTypeNone))
-            logger.info("Released device: \(id, privacy: .private)")
+            logger.notice("Released device: \(id, privacy: .public)")
         }
         seizedDevices.removeAll()
     }

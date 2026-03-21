@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Upgraded HID log levels from info to notice so messages persist in log store (info is not persisted by default)
+- Changed HID log privacy annotations from .private to .public so device IDs are visible in log output
+- Added usage page/usage fields to HIDDevice for diagnosing which HID interface types are enumerated
+- Added error logging when HIDDevice.init fails (skipped interfaces with no vendor/product ID)
+
 ### Added
 - About window showing app icon, version, build number, copyright, and GitHub link
 - Entitlements verification step in release script (rejects get-task-allow before notarization)
