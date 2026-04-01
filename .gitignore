@@ -51,3 +51,6 @@ Pods/
 appcast.xml
 dsa_priv.pem
 eddsa_priv.pem
+
+# Claude Code local config (skills, settings -- not for version control)
+.claude/
