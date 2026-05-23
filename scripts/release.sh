@@ -393,7 +393,12 @@ codesign_developer_id() {
 
     # Notarisation requires the hardened runtime, but codesign --verify won't
     # flag its absence -- confirm the flag is set before wasting a submit.
-    if ! codesign -dvvv "$app" 2>&1 | grep -q "flags=.*runtime"; then
+    # Capture first (don't pipe codesign directly into grep -q): under
+    # `set -o pipefail`, grep -q closing the pipe early makes codesign exit
+    # via SIGPIPE, which would fail this check even when the flag is present.
+    local sig_flags
+    sig_flags="$(codesign -dvvv "$app" 2>&1 || true)"
+    if ! grep -q "flags=.*runtime" <<<"$sig_flags"; then
         die "Hardened runtime not enabled on $app" \
             "Ensure the --options runtime flag was applied during signing."
     fi
