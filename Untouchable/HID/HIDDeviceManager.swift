@@ -177,17 +177,17 @@ final class HIDDeviceManager: ObservableObject {
             let rawName = IOHIDDeviceGetProperty(device, kIOHIDProductKey as CFString) as? String ?? "(no name)"
             let usagePage = IOHIDDeviceGetProperty(device, kIOHIDPrimaryUsagePageKey as CFString) as? Int ?? -1
             let usage = IOHIDDeviceGetProperty(device, kIOHIDPrimaryUsageKey as CFString) as? Int ?? -1
-            logger.error("Skipped HID interface (no vendor/product ID, not built-in): name=\(rawName, privacy: .public) usagePage=\(usagePage) usage=\(usage)")
+            logger.error("Skipped HID interface (no vendor/product ID, not built-in): name=\(rawName, privacy: .private) usagePage=\(usagePage) usage=\(usage)")
             return
         }
 
         // Deduplicate by unique instance ID
         if !devices.contains(where: { $0.id == hidDevice.id }) {
             devices.append(hidDevice)
-            logger.notice("Device connected: \(hidDevice.name, privacy: .public) (\(hidDevice.id, privacy: .public)) usagePage=\(hidDevice.usagePage) usage=\(hidDevice.usage) virtual=\(hidDevice.isVirtual) blocked=\(blocked)")
+            logger.notice("Device connected: \(hidDevice.name, privacy: .private) (\(hidDevice.id, privacy: .private)) usagePage=\(hidDevice.usagePage) usage=\(hidDevice.usage) virtual=\(hidDevice.isVirtual) blocked=\(blocked)")
 
             if hidDevice.isOverdriveVirtual {
-                logger.warning("USB Overdrive VirtualHID detected: \(hidDevice.name, privacy: .public) (\(hidDevice.id, privacy: .public)) -- Overdrive intercepts HID at the driver level, bypassing userspace seizure")
+                logger.warning("USB Overdrive VirtualHID detected: \(hidDevice.name, privacy: .private) (\(hidDevice.id, privacy: .private)) -- Overdrive intercepts HID at the driver level, bypassing userspace seizure")
             }
         }
 
@@ -217,9 +217,9 @@ final class HIDDeviceManager: ObservableObject {
         if let index = devices.firstIndex(where: { $0.id == disconnectedID }) {
             let removed = devices.remove(at: index)
             suppressor.releaseByID(removed.id)
-            logger.notice("Device disconnected: \(removed.name, privacy: .public) (\(removed.id, privacy: .public))")
+            logger.notice("Device disconnected: \(removed.name, privacy: .private) (\(removed.id, privacy: .private))")
         } else {
-            logger.error("Removal callback for unknown device id=\(disconnectedID, privacy: .public)")
+            logger.error("Removal callback for unknown device id=\(disconnectedID, privacy: .private)")
         }
     }
 

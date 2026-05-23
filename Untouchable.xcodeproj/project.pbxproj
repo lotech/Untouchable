@@ -15,7 +15,6 @@
 		A10001010000000000000006 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000006 /* MenuBarView.swift */; };
 		A10001010000000000000008 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000008 /* AppSettings.swift */; };
 		A10001010000000000000009 /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10002010000000000000009 /* LoginItemManager.swift */; };
-		A1000101000000000000000A /* UpdaterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000201000000000000000A /* UpdaterManager.swift */; };
 		A1000101000000000000000B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000201000000000000000B /* Assets.xcassets */; };
 		A1000101000000000000000C /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1000201000000000000000C /* IOKit.framework */; };
 		A1000101000000000000000E /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000201000000000000010 /* AboutView.swift */; };
@@ -30,7 +29,6 @@
 		A10002010000000000000006 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		A10002010000000000000008 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		A10002010000000000000009 /* LoginItemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemManager.swift; sourceTree = "<group>"; };
-		A1000201000000000000000A /* UpdaterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdaterManager.swift; sourceTree = "<group>"; };
 		A1000201000000000000000B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1000201000000000000000C /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		A1000201000000000000000D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -68,7 +66,6 @@
 				A10004010000000000000005 /* UI */,
 				A10004010000000000000006 /* Settings */,
 				A10004010000000000000007 /* LoginItem */,
-				A1000401000000000000000A /* Updater */,
 				A1000201000000000000000B /* Assets.xcassets */,
 				A1000201000000000000000D /* Info.plist */,
 				A1000201000000000000000E /* Untouchable.entitlements */,
@@ -134,14 +131,6 @@
 				A1000201000000000000000C /* IOKit.framework */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		A1000401000000000000000A /* Updater */ = {
-			isa = PBXGroup;
-			children = (
-				A1000201000000000000000A /* UpdaterManager.swift */,
-			);
-			path = Updater;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -223,7 +212,6 @@
 				A10001010000000000000006 /* MenuBarView.swift in Sources */,
 				A10001010000000000000008 /* AppSettings.swift in Sources */,
 				A10001010000000000000009 /* LoginItemManager.swift in Sources */,
-				A1000101000000000000000A /* UpdaterManager.swift in Sources */,
 				A1000101000000000000000E /* AboutView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -63,11 +63,6 @@ struct MenuBarView: View {
             AboutWindow.show()
         }
 
-        Button("Check for Updates...") {
-            UpdaterManager.shared.checkForUpdates()
-        }
-        .disabled(true)
-
         Button("Reset Permissions & Relaunch") {
             resetTCCAndRelaunch()
         }
