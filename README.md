@@ -70,7 +70,13 @@ The interactive build menu lets you:
 +---------------------------------------+
 ```
 
-Or use flags for CI/scripting: `--pull`, `--open`, `--build`, `--install`, `--clean`, `--reset-tcc`.
+Just run `./scripts/build.sh` with no arguments to get this menu -- the flags
+(`--pull`, `--open`, `--build`, `--install`, `--clean`, `--reset-tcc`) are
+optional shortcuts for CI/scripting and are never required.
+
+`build.sh` is for **local development** (build and run on your own Mac).
+Publishing a signed, notarised release for users is a separate, maintainer-only
+flow in `scripts/release.sh` -- see [RELEASING.md](RELEASING.md).
 
 ### Requirements
 

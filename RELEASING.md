@@ -10,6 +10,40 @@ This repo is public, so **no identity values are committed**. The release
 script reads them from the environment; the placeholders below
 (`you@example.com`, `TEAMID`, `<profile>`, `<40-char-hash>`) are illustrative.
 
+## `build.sh` vs `release.sh`
+
+Two scripts, two jobs. You almost never need to remember a flag -- run either
+with **no arguments** for an interactive menu/prompt.
+
+| | `scripts/build.sh` | `scripts/release.sh` |
+|---|---|---|
+| Purpose | Local development | Publish a version to users |
+| Builds | Debug or Release, unsigned/local | Release, Developer ID-signed |
+| Output | `Untouchable.app` in `/Applications` | Signed, notarised `.dmg` + GitHub Release |
+| Touches the network | only `git pull` | uploads to Apple + GitHub |
+| Run it as | `./scripts/build.sh` (menu) | `./scripts/release.sh` (prompts for version) |
+
+Rule of thumb: **`build.sh` = "test my code on this Mac"**, **`release.sh` =
+"ship a new version to the world."**
+
+The flags (`--build`, `--full`, `--preflight`, ...) are **optional** shortcuts
+for CI/scripting. Running with no flags is fully supported and is the easy path.
+
+## Common tasks
+
+```sh
+# I changed some code and want to run it locally:
+./scripts/build.sh            # pick "Build + Install", then "Launch"
+
+# I want to cut a new public release:
+./scripts/release.sh          # it prompts: "What version are you releasing?"
+                              # enter e.g. v1.2.0 and follow the steps
+```
+
+The version you enter at the release prompt flows straight into the app: the
+About box shows exactly that version (see [Versioning](#versioning) below). You
+do not edit any version numbers by hand.
+
 ## What you need (maintainer, one-time)
 
 These are tied to your Apple **account** and **machine**, shared across all

@@ -761,6 +761,13 @@ main() {
 
     # -- Interactive mode --------------------------------------------------
 
+    echo "  Publishes a new version to users: builds a signed Release,"
+    echo "  notarises it with Apple, packages a DMG, and creates a GitHub"
+    echo "  Release. For local dev builds on this Mac, use scripts/build.sh."
+    echo ""
+    echo "  The flags (--full, --build-only, --preflight) are optional"
+    echo "  shortcuts -- running with no flags walks you through every step."
+    echo ""
     echo "What version are you releasing?"
     read -rp "Tag (e.g. v1.0.0): " tag
 
