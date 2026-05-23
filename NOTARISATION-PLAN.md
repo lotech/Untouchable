@@ -1,9 +1,10 @@
 # Untouchable — Developer ID Notarisation Plan
 
-Status: **implemented; pending macOS verification**. Script + docs changes are
-done; the maintainer runs the build/notarise/verify steps on the Mac. Tracks a
-repeatable, env-var-driven Developer ID signing + Apple notarisation + notarised
-DMG pipeline, following the SpinCycle `macos-notarisation-playbook.md`.
+Status: **complete and verified.** v1.0.5 built, signed, notarised, stapled, and
+published; confirmed on a fresh Mac (no Gatekeeper prompt, Input Monitoring
+permission requested, About shows v1.0.5). Tracks the repeatable, env-var-driven
+Developer ID signing + Apple notarisation + notarised DMG pipeline, following the
+SpinCycle `macos-notarisation-playbook.md`.
 
 ## Inventory (per-app adaptation — §4 of the playbook)
 
@@ -87,18 +88,31 @@ DMG pipeline, following the SpinCycle `macos-notarisation-playbook.md`.
       `stapler staple` → `stapler validate`. Staging copy switched `cp -R` →
       `ditto`.
 - [x] **(Sparkle only)** — N/A for this app (no zip/appcast). Documented above.
-- [ ] **Local verify** (maintainer, macOS): `codesign --verify --deep --strict
-      --verbose=2 Untouchable.app`; `spctl -a -vvv` on the app → `accepted` /
-      `source=Notarized Developer ID`. *(non-macOS env here — maintainer runs.)*
-- [ ] **Fresh-Mac verify** (maintainer): mount the DMG on a Mac that has never
-      run the app, drag to `/Applications`, launch — no Gatekeeper prompt.
+- [x] **Local verify** (maintainer, macOS): `codesign_developer_id` runs
+      `codesign --verify --deep --strict --verbose=2` + a hardened-runtime
+      assertion during every release; v1.0.5 passed.
+- [x] **Fresh-Mac verify** (maintainer): v1.0.5 DMG mounted on a Mac that had
+      never run the app — launched with no Gatekeeper prompt, requested Input
+      Monitoring, and About reported v1.0.5.
 - [x] Write `RELEASING.md` (placeholders only: `you@example.com`, `TEAMID`,
       `<profile>` — no real Apple ID / Team ID / profile name / cert hash) +
       a one-line note in README that release builds are maintainer-signed and
       contributors can build/run unsigned.
 - [x] Update `CHANGELOG.md` under `[Unreleased]`.
-- [ ] Fold any new lessons back into the shared playbook. *(Pending — revisit
-      after the maintainer's first run; no new lessons yet.)*
+- [x] Fold any new lessons back into the shared playbook. Two new lessons from
+      this app (paste into `macos-notarisation-playbook.md` §5):
+      1. **Don't pipe `codesign -dvvv` straight into `grep -q` under
+         `set -o pipefail`.** `grep -q` matches and closes the pipe early;
+         `codesign` then dies with SIGPIPE (141) and `pipefail` propagates it,
+         so the hardened-runtime assertion fails on a correctly signed build.
+         Capture the output into a variable first, then grep it.
+      2. **Single-source the app version through build settings.** If
+         `CFBundleShortVersionString` is a hardcoded literal in `Info.plist`,
+         dev/Xcode builds show a stale version no matter the release tag. Make
+         `Info.plist` reference `$(MARKETING_VERSION)` /
+         `$(CURRENT_PROJECT_VERSION)` and have the release script inject them at
+         build time (`MARKETING_VERSION=<tag>
+         CURRENT_PROJECT_VERSION=<git count>`) so dev and release agree.
 
 ## Open-source handling (§8)
 
