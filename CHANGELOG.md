@@ -7,19 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Removed
-- Removed the inactive Sparkle updater stub (`UpdaterManager` and the disabled "Check for Updates..." menu item). The app has no in-app update channel; updates are delivered as notarised DMGs. Removing the unused stub shrinks the attack surface and avoids shipping a dormant update entry point
+## [1.0.6] - 2026-05-24
+
+### Added
+- `RELEASING.md` documenting the maintainer-only signed/notarised release flow (placeholders only; no identity values committed), plus a build-vs-release quick reference and "Common tasks" guide in `RELEASING.md` and the README
 
 ### Changed
 - Device names and IOKit device IDs are now logged with `privacy: .private` (previously `.public`), matching the project's logging convention so device identifiers are redacted in release-build unified logs
+- Release pipeline (`scripts/release.sh`) now reads the Developer ID signing identity and notarytool profile from environment variables (`UNTOUCHABLE_SIGN_IDENTITY`, `UNTOUCHABLE_NOTARY_PROFILE`) instead of auto-detecting/hardcoding them, hard-fails rather than silently shipping an unsigned build (override with `UNTOUCHABLE_ALLOW_ADHOC_RELEASE=1`), re-signs the app with an explicit hardened-runtime + entitlements step, stages the DMG with `ditto`, and validates the stapled ticket
+- Deploy scripts (`build.sh` pull, `release.sh` preflight) now treat the remote branch as the source of truth: they hard-reset to the branch's upstream and discard local drift (a stale version bump, an Xcode signing edit, or an unmerged `UU` state) instead of rebasing or prompting. Set `UNTOUCHABLE_KEEP_LOCAL=1` to preserve local changes instead
+- `build.sh` and `release.sh` interactive menus are now self-documenting: each explains its purpose, how it differs from the other, and that flags are optional shortcuts (running with no arguments is all that's needed)
+- `build.sh` "Pull latest from GitHub" now reports the outcome -- already up to date, the count and list of newly pulled commits, or that local commits were discarded -- instead of silently resetting
 
 ### Fixed
 - App version was hardcoded to `0.1.0 (1)` in `Info.plist`, so dev/Xcode builds always showed the wrong version regardless of the release tag. Version is now single-sourced through the `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` build settings (Info.plist references them via `$(...)`), and the release script injects the tag's version at build time
 
-### Changed
-- Release pipeline (`scripts/release.sh`) now reads the Developer ID signing identity and notarytool profile from environment variables (`UNTOUCHABLE_SIGN_IDENTITY`, `UNTOUCHABLE_NOTARY_PROFILE`) instead of auto-detecting/hardcoding them, hard-fails rather than silently shipping an unsigned build (override with `UNTOUCHABLE_ALLOW_ADHOC_RELEASE=1`), re-signs the app with an explicit hardened-runtime + entitlements step, stages the DMG with `ditto`, and validates the stapled ticket
-- Added `RELEASING.md` documenting the maintainer-only signed/notarised release flow (placeholders only; no identity values committed)
-- Deploy scripts (`build.sh` pull, `release.sh` preflight) now treat the remote branch as the source of truth: they hard-reset to the branch's upstream and discard local drift (a stale version bump, an Xcode signing edit, or an unmerged `UU` state) instead of rebasing or prompting. Set `UNTOUCHABLE_KEEP_LOCAL=1` to preserve local changes instead
+### Removed
+- Removed the inactive Sparkle updater stub (`UpdaterManager` and the disabled "Check for Updates..." menu item). The app has no in-app update channel; updates are delivered as notarised DMGs. Removing the unused stub shrinks the attack surface and avoids shipping a dormant update entry point
 
 ## [1.0.3] - 2026-03-21
 
