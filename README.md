@@ -105,8 +105,6 @@ Untouchable/
     AppSettings.swift             # UserDefaults persistence
   LoginItem/
     LoginItemManager.swift        # SMAppService wrapper
-  Updater/
-    UpdaterManager.swift          # Sparkle stub (inactive)
 ```
 
 ## Privacy & Permissions

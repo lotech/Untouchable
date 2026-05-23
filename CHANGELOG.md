@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- Removed the inactive Sparkle updater stub (`UpdaterManager` and the disabled "Check for Updates..." menu item). The app has no in-app update channel; updates are delivered as notarised DMGs. Removing the unused stub shrinks the attack surface and avoids shipping a dormant update entry point
+
+### Changed
+- Device names and IOKit device IDs are now logged with `privacy: .private` (previously `.public`), matching the project's logging convention so device identifiers are redacted in release-build unified logs
+
 ### Fixed
 - App version was hardcoded to `0.1.0 (1)` in `Info.plist`, so dev/Xcode builds always showed the wrong version regardless of the release tag. Version is now single-sourced through the `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` build settings (Info.plist references them via `$(...)`), and the release script injects the tag's version at build time
 
