@@ -69,6 +69,51 @@ die() {
     exit 1
 }
 
+# Reset the working tree to the remote source of truth, discarding any local
+# drift. The deploy machine only pulls, so local changes are never intentional
+# -- a stale version bump from a prior run, an Info.plist/pbxproj rewrite by
+# Xcode, or a half-finished merge/rebase (the UU state) -- and would otherwise
+# block or corrupt a release. Set UNTOUCHABLE_KEEP_LOCAL=1 to opt out.
+sync_to_remote() {
+    local branch upstream
+    branch="$(git rev-parse --abbrev-ref HEAD)"
+    upstream="origin/$branch"
+
+    log "Syncing to remote source of truth ($upstream)..."
+
+    # Clear any in-progress merge/rebase so the reset can proceed cleanly.
+    git merge --abort 2>/dev/null || true
+    git rebase --abort 2>/dev/null || true
+
+    local attempt delay=2
+    for attempt in 1 2 3 4; do
+        if git fetch origin "$branch" 2>/dev/null; then
+            break
+        fi
+        if [[ $attempt -eq 4 ]]; then
+            die "Could not fetch $upstream after 4 attempts." \
+                "Check your network connection and that origin/$branch exists."
+        fi
+        warn "git fetch failed; retrying in ${delay}s..."
+        sleep "$delay"
+        delay=$((delay * 2))
+    done
+
+    if [[ -n "$(git status --porcelain)" ]] || \
+       [[ "$(git rev-parse HEAD)" != "$(git rev-parse "$upstream")" ]]; then
+        local drift
+        drift="$(git status --short)"
+        if [[ -n "$drift" ]]; then
+            warn "Discarding local changes (remote is the source of truth):"
+            echo "$drift" | sed 's/^/      /'
+        fi
+        git reset --hard "$upstream" >/dev/null
+        success "Reset to $upstream ($(git rev-parse --short HEAD))."
+    else
+        success "Working tree matches $upstream."
+    fi
+}
+
 # -- Preflight checks ------------------------------------------------------
 
 preflight_passed=true
@@ -150,8 +195,17 @@ check_notary_profile() {
 
 check_git_clean() {
     log "Checking working tree..."
+
+    # Default: the remote is the source of truth; discard any local drift so a
+    # stale Info.plist/CHANGELOG or an unmerged (UU) state never blocks release.
+    if [[ "${UNTOUCHABLE_KEEP_LOCAL:-}" != "1" ]]; then
+        sync_to_remote
+        return
+    fi
+
+    # UNTOUCHABLE_KEEP_LOCAL=1: preserve local changes, just warn/confirm.
     if [[ -n "$(git status --porcelain 2>/dev/null)" ]]; then
-        warn "Working tree has uncommitted changes:"
+        warn "Working tree has uncommitted changes (UNTOUCHABLE_KEEP_LOCAL=1):"
         git status --short | sed 's/^/      /'
         echo ""
         echo "      Fix: Commit or stash changes before releasing."

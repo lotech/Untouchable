@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Release pipeline (`scripts/release.sh`) now reads the Developer ID signing identity and notarytool profile from environment variables (`UNTOUCHABLE_SIGN_IDENTITY`, `UNTOUCHABLE_NOTARY_PROFILE`) instead of auto-detecting/hardcoding them, hard-fails rather than silently shipping an unsigned build (override with `UNTOUCHABLE_ALLOW_ADHOC_RELEASE=1`), re-signs the app with an explicit hardened-runtime + entitlements step, stages the DMG with `ditto`, and validates the stapled ticket
 - Added `RELEASING.md` documenting the maintainer-only signed/notarised release flow (placeholders only; no identity values committed)
+- Deploy scripts (`build.sh` pull, `release.sh` preflight) now treat the remote branch as the source of truth: they hard-reset to the branch's upstream and discard local drift (a stale version bump, an Xcode signing edit, or an unmerged `UU` state) instead of rebasing or prompting. Set `UNTOUCHABLE_KEEP_LOCAL=1` to preserve local changes instead
 
 ## [1.0.3] - 2026-03-21
 
