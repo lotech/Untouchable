@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-05-23
+
 ### Fixed
 - App version was hardcoded to `0.1.0 (1)` in `Info.plist`, so dev/Xcode builds always showed the wrong version regardless of the release tag. Version is now single-sourced through the `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` build settings (Info.plist references them via `$(...)`), and the release script injects the tag's version at build time
 
