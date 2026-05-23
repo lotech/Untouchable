@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deploy scripts (`build.sh` pull, `release.sh` preflight) now treat the remote branch as the source of truth: they hard-reset to the branch's upstream and discard local drift (a stale version bump, an Xcode signing edit, or an unmerged `UU` state) instead of rebasing or prompting. Set `UNTOUCHABLE_KEEP_LOCAL=1` to preserve local changes instead
 - `build.sh` and `release.sh` interactive menus are now self-documenting: each explains its purpose, how it differs from the other, and that flags are optional shortcuts (running with no arguments is all that's needed)
 - `build.sh` "Pull latest from GitHub" now reports the outcome -- already up to date, the count and list of newly pulled commits, or that local commits were discarded -- instead of silently resetting
+- `release.sh` version prompt now accepts a plain number (`1.0.6`); the leading `v` is added automatically so tags stay `vX.Y.Z`. Typing the `v` still works
+- `release.sh` preflight now aborts before promoting `CHANGELOG.md` when an earlier check fails, so a run that fails preflight (e.g. a malformed version) no longer leaves the changelog half-modified
 
 ### Fixed
 - App version was hardcoded to `0.1.0 (1)` in `Info.plist`, so dev/Xcode builds always showed the wrong version regardless of the release tag. Version is now single-sourced through the `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` build settings (Info.plist references them via `$(...)`), and the release script injects the tag's version at build time
