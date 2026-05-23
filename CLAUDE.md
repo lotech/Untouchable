@@ -15,7 +15,7 @@ Untouchable is a macOS 13+ menu bar app (SwiftUI MenuBarExtra) that enumerates H
 - **HID layer**: IOKit -> IOHIDManager for enumeration, IOHIDDeviceOpen with kIOHIDOptionsTypeSeizeDevice for suppression
 - **Persistence**: UserDefaults, blocked devices stored as ["vendorID:productID"]
 - **Login item**: SMAppService.mainApp
-- **Updates**: Sparkle 2.x (stub only -- dependency removed until wired up)
+- **Updates**: none -- distributed as a notarised DMG; no in-app updater
 - **Logging**: os.Logger with privacy annotations (never print())
 
 ## Architecture
@@ -27,7 +27,6 @@ Untouchable/
   UI/            -- MenuBarView, DeviceRowView (SwiftUI)
   Settings/      -- AppSettings (UserDefaults @Published wrapper)
   LoginItem/     -- SMAppService wrapper
-  Updater/       -- Sparkle stub
 ```
 
 ## Build & Run
@@ -50,7 +49,7 @@ Untouchable/
 - **App sandbox is OFF** -- accepted risk: IOKit HID seizure (kIOHIDOptionsTypeSeizeDevice) is incompatible with the macOS app sandbox. Re-evaluate if Apple provides a sandboxed HID API in the future.
 - Hardened runtime enabled
 - No network access, no data collection, no keylogging
-- Sparkle: when wiring up, must use HTTPS SUFeedURL + SUPublicEDKey for EdDSA signature verification
+- No in-app updater. If an updater is ever added, it must verify signatures over HTTPS (e.g. Sparkle with SUPublicEDKey EdDSA + an HTTPS SUFeedURL) -- never ship an unauthenticated update channel on an unsandboxed, input-monitoring app
 
 ## Skills
 

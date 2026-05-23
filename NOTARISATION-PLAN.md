@@ -7,12 +7,11 @@ DMG pipeline, following the SpinCycle `macos-notarisation-playbook.md`.
 
 ## Inventory (per-app adaptation — §4 of the playbook)
 
-- **Uses Sparkle?** **No.** `Untouchable/Updater/UpdaterManager.swift` is an
-  explicit stub (`canCheckForUpdates` always `false`); `Package.swift` declares
-  zero dependencies; `Info.plist` only has commented-out `SUFeedURL` /
-  `SUPublicEDKey` placeholders. The notary history (DMGs, no `-update.zip`)
-  confirms this. **Implication: DMG-only — no zip enclosure, no appcast, no
-  EdDSA `sign_update`.** If/when Sparkle is wired up later, revisit and add the
+- **Uses Sparkle?** **No.** There is no in-app updater at all; `Package.swift`
+  declares zero dependencies and `Info.plist` carries no `SUFeedURL` /
+  `SUPublicEDKey` keys. The notary history (DMGs, no `-update.zip`) confirms
+  this. **Implication: DMG-only — no zip enclosure, no appcast, no EdDSA
+  `sign_update`.** If an updater is ever wired up later, revisit and add the
   `…-update.zip` + appcast path from playbook §3.
 - **Bundled executables in `Resources/`:** **None.** All Swift sources compile
   into the single main Mach-O (`Contents/MacOS/Untouchable`) which Xcode signs.
