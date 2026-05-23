@@ -291,14 +291,21 @@ run_preflight() {
     if [[ -n "$tag" ]]; then
         check_tag "$tag"
         echo ""
-        check_changelog "$tag"
-        echo ""
     fi
 
+    # Bail before any mutating step. check_changelog rewrites CHANGELOG.md, so a
+    # failed check (e.g. a malformed tag) must abort here -- otherwise a run that
+    # fails preflight would still leave the CHANGELOG promoted.
     if [[ "$preflight_passed" == false ]]; then
         echo ""
         fail "Preflight failed. Fix the issues above before continuing."
         exit 1
+    fi
+
+    # All read-only checks passed; now run the steps that modify files.
+    if [[ -n "$tag" ]]; then
+        check_changelog "$tag"
+        echo ""
     fi
 
     echo ""
