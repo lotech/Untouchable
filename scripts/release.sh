@@ -22,6 +22,19 @@ BUILD_DIR="$REPO_ROOT/build"
 APP_NAME="Untouchable.app"
 RELEASE_DIR="$REPO_ROOT/release"
 DMG_VOLNAME="Untouchable"
+ENTITLEMENTS="$REPO_ROOT/Untouchable/Untouchable.entitlements"
+
+# Identity is read from the environment, never hardcoded (this is a public
+# repo). The maintainer sets these in ~/.zshrc; contributors who don't set
+# them simply can't run the signed/notarised release path -- building and
+# running unsigned from source is unaffected. See RELEASING.md.
+#   UNTOUCHABLE_SIGN_IDENTITY      -- Developer ID Application cert SHA-1 hash
+#   UNTOUCHABLE_NOTARY_PROFILE     -- notarytool keychain profile name
+#   UNTOUCHABLE_ALLOW_ADHOC_RELEASE=1 -- deliberate opt-in to an unsigned build
+NOTARY_PROFILE="${UNTOUCHABLE_NOTARY_PROFILE:-}"
+ADHOC=false
+SIGNING_IDENTITY=""
+TEAM_ID=""
 
 cd "$REPO_ROOT"
 
@@ -71,44 +84,67 @@ check_tool() {
     fi
 }
 
-check_signing_identity() {
-    log "Checking code-signing identities..."
-    local identities
-    identities="$(security find-identity -v -p codesigning 2>/dev/null || true)"
+resolve_signing_identity() {
+    log "Resolving signing identity from environment..."
 
-    if echo "$identities" | grep -q "Developer ID Application"; then
-        local id_line
-        id_line="$(echo "$identities" | grep "Developer ID Application" | head -1)"
-        SIGNING_IDENTITY="$(echo "$id_line" | sed 's/.*"\(.*\)"/\1/')"
-        TEAM_ID="$(echo "$SIGNING_IDENTITY" | sed 's/.*(\(.*\))/\1/')"
-        success "Signing identity: $SIGNING_IDENTITY"
-        success "Team ID: $TEAM_ID"
-    elif echo "$identities" | grep -q "Apple Development"; then
-        warn "No 'Developer ID Application' certificate found."
-        echo "      You have an Apple Development cert, which works for local use"
-        echo "      but Gatekeeper will block it for other users."
-        echo ""
-        echo "      To distribute publicly, you need a Developer ID Application"
-        echo "      certificate from https://developer.apple.com/account"
-        echo ""
-        if ask_yn "Continue with Apple Development signing anyway?" "n"; then
-            local id_line
-            id_line="$(echo "$identities" | grep "Apple Development" | head -1)"
-            SIGNING_IDENTITY="$(echo "$id_line" | sed 's/.*"\(.*\)"/\1/')"
-            TEAM_ID="$(echo "$SIGNING_IDENTITY" | sed 's/.*(\(.*\))/\1/')"
-            warn "Using: $SIGNING_IDENTITY"
-        else
-            preflight_passed=false
+    # Hard-fail safeguard: never silently publish an unsigned build. The only
+    # way past an unset identity is the explicit ad-hoc opt-in.
+    if [[ -z "${UNTOUCHABLE_SIGN_IDENTITY:-}" ]]; then
+        if [[ "${UNTOUCHABLE_ALLOW_ADHOC_RELEASE:-}" == "1" ]]; then
+            warn "UNTOUCHABLE_SIGN_IDENTITY is unset and UNTOUCHABLE_ALLOW_ADHOC_RELEASE=1."
+            warn "Building AD-HOC (unsigned) -- NOT for public distribution; Gatekeeper will block other users."
+            SIGNING_IDENTITY="-"
+            ADHOC=true
+            return
         fi
-    else
-        fail "No valid signing identity found."
-        echo "      Available identities:"
-        echo "$identities" | sed 's/^/        /'
-        echo ""
-        echo "      Fix: Install a Developer ID Application certificate from"
-        echo "           https://developer.apple.com/account"
-        echo "           Or run: open /Applications/Utilities/Keychain\\ Access.app"
+        fail "UNTOUCHABLE_SIGN_IDENTITY is not set."
+        echo "      Fix: export the Developer ID Application cert's SHA-1 hash, e.g. in ~/.zshrc:"
+        echo "             export UNTOUCHABLE_SIGN_IDENTITY=<40-char-hash>"
+        echo "           Find it with: security find-identity -v -p codesigning"
+        echo "      For a deliberate unsigned/ad-hoc build instead, set:"
+        echo "             export UNTOUCHABLE_ALLOW_ADHOC_RELEASE=1"
         preflight_passed=false
+        return
+    fi
+
+    SIGNING_IDENTITY="$UNTOUCHABLE_SIGN_IDENTITY"
+    ADHOC=false
+
+    # Confirm the identity exists in the keychain and derive the Team ID from
+    # its certificate name "...(TEAMID)". Match on the hash to stay unambiguous
+    # even when two Developer ID certs share a display name.
+    local id_line
+    id_line="$(security find-identity -v -p codesigning 2>/dev/null | grep -i "$SIGNING_IDENTITY" | head -1 || true)"
+    if [[ -z "$id_line" ]]; then
+        fail "UNTOUCHABLE_SIGN_IDENTITY ($SIGNING_IDENTITY) not found in the keychain."
+        echo "      Available codesigning identities:"
+        security find-identity -v -p codesigning 2>/dev/null | sed 's/^/        /'
+        preflight_passed=false
+        return
+    fi
+    local id_name
+    id_name="$(echo "$id_line" | sed 's/.*"\(.*\)".*/\1/')"
+    TEAM_ID="$(echo "$id_name" | sed -n 's/.*(\([A-Z0-9]*\)).*/\1/p')"
+    success "Signing identity: $id_name"
+    [[ -n "$TEAM_ID" ]] && success "Team ID: $TEAM_ID"
+}
+
+check_notary_profile() {
+    [[ "$ADHOC" == true ]] && return
+    log "Checking notarytool profile..."
+    if [[ -z "$NOTARY_PROFILE" ]]; then
+        fail "UNTOUCHABLE_NOTARY_PROFILE is not set."
+        echo "      Fix: export the shared notarytool keychain profile name, e.g. in ~/.zshrc:"
+        echo "             export UNTOUCHABLE_NOTARY_PROFILE=<profile>"
+        preflight_passed=false
+        return
+    fi
+    if xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" &>/dev/null; then
+        success "Notary profile reachable: $NOTARY_PROFILE"
+    else
+        warn "Notary profile '$NOTARY_PROFILE' did not authenticate (or no history yet)."
+        echo "      If notarisation later fails, re-store it (one-time):"
+        echo "        xcrun notarytool store-credentials \"$NOTARY_PROFILE\" --apple-id you@example.com --team-id TEAMID"
     fi
 }
 
@@ -187,7 +223,10 @@ run_preflight() {
     check_tool "git"        "xcode-select --install"
     echo ""
 
-    check_signing_identity
+    resolve_signing_identity
+    echo ""
+
+    check_notary_profile
     echo ""
 
     check_git_clean
@@ -270,6 +309,43 @@ do_release_build() {
     success "Build succeeded: $APP_PATH"
 }
 
+# -- Sign (inside-out) -----------------------------------------------------
+
+# Re-sign the built app with Developer ID, hardened runtime, a secure
+# timestamp, and the project entitlements. For Untouchable this is just the
+# .app bundle: there are no standalone binaries in Resources/ and no embedded
+# frameworks with nested code (no Sparkle), so inside-out signing collapses to
+# the outer bundle. If either of those is ever added, sign the deepest items
+# first (see macos-notarisation-playbook.md inside-out ordering).
+codesign_developer_id() {
+    local app="$1"
+
+    if [[ "$ADHOC" == true ]]; then
+        warn "Ad-hoc build: skipping Developer ID re-sign."
+        return
+    fi
+
+    log "Signing $APP_NAME (Developer ID, hardened runtime)..."
+    local cs=(codesign --force --timestamp --options runtime --sign "$SIGNING_IDENTITY")
+
+    if [[ -f "$ENTITLEMENTS" ]]; then
+        "${cs[@]}" --entitlements "$ENTITLEMENTS" "$app"
+    else
+        die "Entitlements file missing: $ENTITLEMENTS" \
+            "Untouchable requires com.apple.security.device.input-monitoring; restore the file."
+    fi
+
+    codesign --verify --deep --strict --verbose=2 "$app"
+
+    # Notarisation requires the hardened runtime, but codesign --verify won't
+    # flag its absence -- confirm the flag is set before wasting a submit.
+    if ! codesign -dvvv "$app" 2>&1 | grep -q "flags=.*runtime"; then
+        die "Hardened runtime not enabled on $app" \
+            "Ensure the --options runtime flag was applied during signing."
+    fi
+    success "Signed and verified (hardened runtime enabled)."
+}
+
 # -- Verify signing --------------------------------------------------------
 
 verify_signing() {
@@ -344,7 +420,8 @@ create_dmg() {
     local staging="$RELEASE_DIR/.staging"
     rm -rf "$staging"
     mkdir -p "$staging"
-    cp -R "$app_path" "$staging/$APP_NAME"
+    # ditto (not cp -R) preserves the stapled ticket, symlinks, and xattrs.
+    ditto "$app_path" "$staging/$APP_NAME"
 
     # Symlink to /Applications for drag-install
     ln -s /Applications "$staging/Applications"
@@ -364,9 +441,14 @@ create_dmg() {
             "Check disk space and permissions in $RELEASE_DIR"
     fi
 
-    log "Signing DMG with: $SIGNING_IDENTITY..."
-    codesign --force --sign "$SIGNING_IDENTITY" --timestamp "$dmg_path"
-    success "DMG signed."
+    if [[ "$ADHOC" == true ]]; then
+        warn "Ad-hoc build: leaving DMG unsigned."
+    else
+        log "Signing DMG..."
+        # No --options runtime: a DMG is a container, not code.
+        codesign --force --sign "$SIGNING_IDENTITY" --timestamp "$dmg_path"
+        success "DMG signed."
+    fi
 
     local size
     size="$(du -h "$dmg_path" | cut -f1)"
@@ -379,21 +461,26 @@ create_dmg() {
 notarize_dmg() {
     local dmg_path="$1"
 
+    if [[ "$ADHOC" == true ]]; then
+        warn "Ad-hoc build: skipping notarization. Users will see a Gatekeeper warning."
+        return 0
+    fi
+
     log "Checking notarization prerequisites..."
 
-    # Check for stored credentials
-    if ! xcrun notarytool history --keychain-profile "Untouchable" &>/dev/null 2>&1; then
-        warn "No stored notarization profile found."
+    # Check for stored credentials under the configured profile.
+    if ! xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" &>/dev/null 2>&1; then
+        warn "Notary profile '$NOTARY_PROFILE' not found / not authenticating."
         echo ""
         echo "  To set up notarization (one-time):"
         echo ""
-        echo "    xcrun notarytool store-credentials \"Untouchable\" \\"
-        echo "      --apple-id YOUR_APPLE_ID@example.com \\"
-        echo "      --team-id YOUR_TEAM_ID \\"
-        echo "      --password YOUR_APP_SPECIFIC_PASSWORD"
+        echo "    xcrun notarytool store-credentials \"$NOTARY_PROFILE\" \\"
+        echo "      --apple-id you@example.com \\"
+        echo "      --team-id TEAMID"
         echo ""
-        echo "  Get an app-specific password at: https://appleid.apple.com/account/manage"
-        echo "  Find your Team ID at: https://developer.apple.com/account -> Membership"
+        echo "  notarytool prompts for the app-specific password interactively"
+        echo "  (keeps it out of shell history). Get one at:"
+        echo "    https://account.apple.com -> Sign-In and Security -> App-Specific Passwords"
         echo ""
         if ! ask_yn "Skip notarization and continue?" "y"; then
             exit 1
@@ -408,7 +495,7 @@ notarize_dmg() {
 
     local notary_output
     notary_output="$(xcrun notarytool submit "$dmg_path" \
-        --keychain-profile "Untouchable" \
+        --keychain-profile "$NOTARY_PROFILE" \
         --wait 2>&1)" || true
 
     echo "$notary_output"
@@ -422,9 +509,14 @@ notarize_dmg() {
     if echo "$notary_output" | grep -q "status: Accepted"; then
         success "Notarization succeeded."
 
-        log "Stapling notarization ticket..."
+        log "Stapling notarization ticket to the DMG..."
         if xcrun stapler staple "$dmg_path"; then
             success "Stapled."
+            if xcrun stapler validate "$dmg_path" &>/dev/null; then
+                success "Staple validated."
+            else
+                warn "stapler validate did not confirm the ticket; re-check before publishing."
+            fi
         else
             warn "Stapling failed. Users can still run the app (macOS checks online)."
         fi
@@ -435,7 +527,7 @@ notarize_dmg() {
             echo "  Fetching notarization log..."
             echo ""
             xcrun notarytool log "$submission_id" \
-                --keychain-profile "Untouchable" 2>&1 || true
+                --keychain-profile "$NOTARY_PROFILE" 2>&1 || true
             echo ""
         fi
         echo "  Common causes:"
@@ -445,7 +537,7 @@ notarize_dmg() {
         echo ""
         if [[ -n "$submission_id" ]]; then
             echo "  View full details:"
-            echo "    xcrun notarytool log $submission_id --keychain-profile Untouchable"
+            echo "    xcrun notarytool log $submission_id --keychain-profile \"$NOTARY_PROFILE\""
             echo ""
         fi
         if ! ask_yn "Continue without notarization?" "n"; then
@@ -574,6 +666,7 @@ main() {
             RELEASE_VERSION="${tag#v}"
             set_version "$tag"
             do_release_build
+            codesign_developer_id "$BUILD_DIR/Build/Products/Release/$APP_NAME"
             verify_signing "$BUILD_DIR/Build/Products/Release/$APP_NAME"
             create_dmg "$BUILD_DIR/Build/Products/Release/$APP_NAME" "$tag"
             echo ""
@@ -589,6 +682,7 @@ main() {
             RELEASE_VERSION="${tag#v}"
             set_version "$tag"
             do_release_build
+            codesign_developer_id "$BUILD_DIR/Build/Products/Release/$APP_NAME"
             verify_signing "$BUILD_DIR/Build/Products/Release/$APP_NAME"
             create_dmg "$BUILD_DIR/Build/Products/Release/$APP_NAME" "$tag"
             notarize_dmg "$DMG_PATH"
@@ -640,7 +734,8 @@ main() {
     APP_PATH="$BUILD_DIR/Build/Products/Release/$APP_NAME"
     echo ""
 
-    log "Step 2/5: Verify signature"
+    log "Step 2/5: Sign + verify"
+    codesign_developer_id "$APP_PATH"
     verify_signing "$APP_PATH"
     echo ""
 

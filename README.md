@@ -40,6 +40,9 @@ Untouchable sits in your menu bar and lists every HID pointing device connected 
 
 Download the latest `.dmg` from [Releases](https://github.com/lotech/Untouchable/releases), drag to `/Applications`, and launch.
 
+Release builds are Developer ID-signed and notarised by the maintainer;
+contributors can build and run unsigned locally. See [RELEASING.md](RELEASING.md).
+
 ### From Source
 
 ```bash
