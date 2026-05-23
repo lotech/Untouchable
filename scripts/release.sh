@@ -71,6 +71,19 @@ die() {
     exit 1
 }
 
+# Accept a version typed with or without a leading "v" and return the canonical
+# tag form. Git tags and GitHub releases stay "vX.Y.Z" for consistency with the
+# repo's existing tags; the user just doesn't have to type the "v". An empty
+# input is passed through unchanged (e.g. an omitted optional preflight tag).
+normalize_tag() {
+    local t="$1"
+    if [[ -z "$t" || "$t" == v* ]]; then
+        printf '%s' "$t"
+    else
+        printf 'v%s' "$t"
+    fi
+}
+
 # Reset the working tree to the remote source of truth, discarding any local
 # drift. The deploy machine only pulls, so local changes are never intentional
 # -- a stale version bump from a prior run, an Info.plist/pbxproj rewrite by
@@ -224,8 +237,8 @@ check_tag() {
     log "Checking tag $tag..."
 
     if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
-        fail "Tag '$tag' does not match vX.Y.Z or vX.Y format."
-        echo "      Fix: Use semantic versioning, e.g. v1.0.0, v1.0, v0.2.1"
+        fail "Version '$tag' does not match X.Y.Z or X.Y format."
+        echo "      Fix: Use semantic versioning, e.g. 1.0.0, 1.0, 0.2.1"
         preflight_passed=false
         return
     fi
@@ -291,14 +304,21 @@ run_preflight() {
     if [[ -n "$tag" ]]; then
         check_tag "$tag"
         echo ""
-        check_changelog "$tag"
-        echo ""
     fi
 
+    # Bail before any mutating step. check_changelog rewrites CHANGELOG.md, so a
+    # failed check (e.g. a malformed tag) must abort here -- otherwise a run that
+    # fails preflight would still leave the CHANGELOG promoted.
     if [[ "$preflight_passed" == false ]]; then
         echo ""
         fail "Preflight failed. Fix the issues above before continuing."
         exit 1
+    fi
+
+    # All read-only checks passed; now run the steps that modify files.
+    if [[ -n "$tag" ]]; then
+        check_changelog "$tag"
+        echo ""
     fi
 
     echo ""
@@ -707,11 +727,12 @@ main() {
     echo ""
 
     local mode="${1:-}"
-    local tag="${2:-}"
+    local tag
+    tag="$(normalize_tag "${2:-}")"
 
     case "$mode" in
         --preflight)
-            run_preflight "${tag:-}"
+            run_preflight "$tag"
             exit 0
             ;;
         --build-only)
@@ -729,8 +750,8 @@ main() {
             ;;
         --full)
             if [[ -z "$tag" ]]; then
-                die "Tag required for --full mode." \
-                    "Usage: ./scripts/release.sh --full v1.0.0"
+                die "Version required for --full mode." \
+                    "Usage: ./scripts/release.sh --full 1.0.0"
             fi
             run_preflight "$tag"
             RELEASE_VERSION="${tag#v}"
@@ -749,12 +770,15 @@ main() {
             # Interactive mode
             ;;
         *)
-            echo "Usage: $(basename "$0") [--preflight|--build-only|--full vX.Y.Z]"
+            echo "Usage: $(basename "$0") [--preflight|--build-only|--full <version>]"
             echo ""
-            echo "  --preflight        Run all checks, build nothing"
-            echo "  --build-only       Build + sign + package DMG (no upload)"
-            echo "  --full vX.Y.Z     Full pipeline: build, sign, notarize, release"
-            echo "  (no args)          Interactive mode"
+            echo "  --preflight          Run all checks, build nothing"
+            echo "  --build-only         Build + sign + package DMG (no upload)"
+            echo "  --full <version>     Full pipeline: build, sign, notarize, release"
+            echo "  (no args)            Interactive mode"
+            echo ""
+            echo "  <version> is a plain number like 1.0.0 (the leading 'v' is added"
+            echo "  automatically; you can include it if you prefer)."
             exit 1
             ;;
     esac
@@ -769,10 +793,11 @@ main() {
     echo "  shortcuts -- running with no flags walks you through every step."
     echo ""
     echo "What version are you releasing?"
-    read -rp "Tag (e.g. v1.0.0): " tag
+    read -rp "Version (e.g. 1.0.0): " tag
+    tag="$(normalize_tag "$tag")"
 
     if [[ -z "$tag" ]]; then
-        die "No tag provided." "Enter a version like v1.0.0"
+        die "No version provided." "Enter a version like 1.0.0"
     fi
 
     run_preflight "$tag"

@@ -37,7 +37,7 @@ for CI/scripting. Running with no flags is fully supported and is the easy path.
 
 # I want to cut a new public release:
 ./scripts/release.sh          # it prompts: "What version are you releasing?"
-                              # enter e.g. v1.2.0 and follow the steps
+                              # enter e.g. 1.2.0 and follow the steps
 ```
 
 The version you enter at the release prompt flows straight into the app: the
@@ -89,11 +89,15 @@ personal identifiers out of public history and makes the script fork-friendly.
 The pipeline lives in `scripts/release.sh`:
 
 ```sh
-./scripts/release.sh --preflight        # checks only: tools, identity, profile
-./scripts/release.sh --build-only vX.Y.Z   # build + sign + DMG (no notarise/upload)
-./scripts/release.sh --full vX.Y.Z      # build -> sign -> DMG -> notarise -> staple -> GitHub release
-./scripts/release.sh                    # interactive (asks before each step)
+./scripts/release.sh --preflight          # checks only: tools, identity, profile
+./scripts/release.sh --build-only 1.2.0   # build + sign + DMG (no notarise/upload)
+./scripts/release.sh --full 1.2.0         # build -> sign -> DMG -> notarise -> staple -> GitHub release
+./scripts/release.sh                      # interactive (asks before each step)
 ```
+
+Enter the version as a plain number (`1.2.0`). The leading `v` is added
+automatically, so the git tag and GitHub release are `v1.2.0`; you can type the
+`v` yourself if you prefer -- both forms work.
 
 What `--full` does, in order:
 
@@ -127,7 +131,7 @@ deliberate unsigned/ad-hoc build (local testing only -- Gatekeeper will block
 other users), opt in explicitly:
 
 ```sh
-UNTOUCHABLE_ALLOW_ADHOC_RELEASE=1 ./scripts/release.sh --build-only vX.Y.Z
+UNTOUCHABLE_ALLOW_ADHOC_RELEASE=1 ./scripts/release.sh --build-only 1.2.0
 ```
 
 ## Verifying a release
