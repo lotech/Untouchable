@@ -62,8 +62,25 @@ do_pull() {
         warn "Discarding local changes (remote is the source of truth):"
         git status --short | sed 's/^/      /'
     fi
+
+    local before after incoming count
+    before="$(git rev-parse HEAD)"
     git reset --hard "$upstream" >/dev/null
-    success "Reset to $upstream ($(git rev-parse --short HEAD))."
+    after="$(git rev-parse HEAD)"
+
+    if [[ "$before" == "$after" ]]; then
+        success "Already up to date ($(git rev-parse --short HEAD)). Nothing pulled."
+        return
+    fi
+
+    incoming="$(git log --oneline "$before..$after" 2>/dev/null)"
+    if [[ -n "$incoming" ]]; then
+        count="$(printf '%s\n' "$incoming" | wc -l | tr -d ' ')"
+        success "Pulled $count new commit(s), now at $(git rev-parse --short HEAD):"
+        printf '%s\n' "$incoming" | sed 's/^/      /'
+    else
+        success "Reset to $upstream ($(git rev-parse --short HEAD)); discarded local commit(s)."
+    fi
 }
 
 do_open() {
