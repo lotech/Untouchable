@@ -16,16 +16,54 @@ cd "$REPO_ROOT"
 
 log()     { echo "==> $*"; }
 success() { echo "  [ok] $*"; }
+warn()    { echo "  [..] $*"; }
 fail()    { echo "  [!!] $*" >&2; }
 
 # -- Actions ---------------------------------------------------------------
 
+# This machine only ever pulls; any local change is drift from the remote,
+# which is the source of truth. By default we discard that drift and reset to
+# the branch's upstream -- this also clears a half-finished merge/rebase that
+# would otherwise leave the tree in an unmerged (UU) state. Set
+# UNTOUCHABLE_KEEP_LOCAL=1 to keep local work (rebase pull instead).
 do_pull() {
-    local branch
+    local branch upstream
     branch="$(git rev-parse --abbrev-ref HEAD)"
-    log "Pulling latest from origin/${branch}..."
-    git pull --rebase origin "${branch}"
-    success "Up to date."
+    upstream="origin/$branch"
+
+    if [[ "${UNTOUCHABLE_KEEP_LOCAL:-}" == "1" ]]; then
+        log "Pulling latest from $upstream (rebase, keeping local changes)..."
+        git pull --rebase origin "$branch"
+        success "Up to date."
+        return
+    fi
+
+    log "Syncing to remote source of truth ($upstream)..."
+
+    # Clear any in-progress merge/rebase so the reset can proceed cleanly.
+    git merge --abort 2>/dev/null || true
+    git rebase --abort 2>/dev/null || true
+
+    local attempt delay=2
+    for attempt in 1 2 3 4; do
+        if git fetch origin "$branch" 2>/dev/null; then
+            break
+        fi
+        if [[ $attempt -eq 4 ]]; then
+            fail "Could not fetch $upstream after 4 attempts. Check your network."
+            return 1
+        fi
+        warn "git fetch failed; retrying in ${delay}s..."
+        sleep "$delay"
+        delay=$((delay * 2))
+    done
+
+    if [[ -n "$(git status --porcelain)" ]]; then
+        warn "Discarding local changes (remote is the source of truth):"
+        git status --short | sed 's/^/      /'
+    fi
+    git reset --hard "$upstream" >/dev/null
+    success "Reset to $upstream ($(git rev-parse --short HEAD))."
 }
 
 do_open() {
