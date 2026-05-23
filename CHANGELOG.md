@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- App version was hardcoded to `0.1.0 (1)` in `Info.plist`, so dev/Xcode builds always showed the wrong version regardless of the release tag. Version is now single-sourced through the `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` build settings (Info.plist references them via `$(...)`), and the release script injects the tag's version at build time
+
 ### Changed
 - Release pipeline (`scripts/release.sh`) now reads the Developer ID signing identity and notarytool profile from environment variables (`UNTOUCHABLE_SIGN_IDENTITY`, `UNTOUCHABLE_NOTARY_PROFILE`) instead of auto-detecting/hardcoding them, hard-fails rather than silently shipping an unsigned build (override with `UNTOUCHABLE_ALLOW_ADHOC_RELEASE=1`), re-signs the app with an explicit hardened-runtime + entitlements step, stages the DMG with `ditto`, and validates the stapled ticket
 - Added `RELEASING.md` documenting the maintainer-only signed/notarised release flow (placeholders only; no identity values committed)

@@ -112,6 +112,19 @@ If notarisation comes back `Invalid`, the exact offending file is named by:
 xcrun notarytool log <submission-id> --keychain-profile "<profile>"
 ```
 
+## Versioning
+
+The app version is single-sourced through Xcode build settings:
+`Untouchable/Info.plist` sets `CFBundleShortVersionString` to
+`$(MARKETING_VERSION)` and `CFBundleVersion` to `$(CURRENT_PROJECT_VERSION)`.
+
+- **Release builds:** `release.sh` injects `MARKETING_VERSION=<tag>` and
+  `CURRENT_PROJECT_VERSION=<git commit count>` at build time, so the DMG always
+  matches the tag. No file edits, nothing to commit.
+- **Dev / `build.sh` / Xcode builds:** use the committed `MARKETING_VERSION` in
+  `Untouchable.xcodeproj/project.pbxproj`. Bump it when you start a new
+  development cycle so local builds don't show a stale version.
+
 ## Forking
 
 A forker who wants their own notarised build just sets the same two env vars to

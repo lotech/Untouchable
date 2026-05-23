@@ -35,6 +35,8 @@ NOTARY_PROFILE="${UNTOUCHABLE_NOTARY_PROFILE:-}"
 ADHOC=false
 SIGNING_IDENTITY=""
 TEAM_ID=""
+RELEASE_VERSION=""
+RELEASE_BUILD=""
 
 cd "$REPO_ROOT"
 
@@ -308,30 +310,22 @@ run_preflight() {
 
 set_version() {
     local tag="$1"
-    local version="${tag#v}"
+    RELEASE_VERSION="${tag#v}"
 
-    log "Syncing version to $version..."
+    # CFBundleVersion (build number) from git commit count.
+    RELEASE_BUILD="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
 
-    local plist="$REPO_ROOT/Untouchable/Info.plist"
-
-    # Update CFBundleShortVersionString in Info.plist
-    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $version" "$plist" 2>/dev/null || \
-        plutil -replace CFBundleShortVersionString -string "$version" "$plist"
-
-    # Increment CFBundleVersion (build number) based on git commit count
-    local build_number
-    build_number="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
-    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $build_number" "$plist" 2>/dev/null || \
-        plutil -replace CFBundleVersion -string "$build_number" "$plist"
-
-    success "Info.plist: $version ($build_number)"
+    # The version is single-sourced through the MARKETING_VERSION /
+    # CURRENT_PROJECT_VERSION build settings (Info.plist references them via
+    # $(...)), so we inject them at build time rather than rewriting Info.plist
+    # literals. This keeps dev/Xcode builds and release builds consistent.
+    log "Release version: $RELEASE_VERSION ($RELEASE_BUILD)"
+    success "Will inject MARKETING_VERSION=$RELEASE_VERSION CURRENT_PROJECT_VERSION=$RELEASE_BUILD."
 }
 
 # -- Build -----------------------------------------------------------------
 
 do_release_build() {
-    local version="${RELEASE_VERSION:-}"
-
     log "Resolving Swift package dependencies..."
     xcodebuild -resolvePackageDependencies \
         -project "$PROJECT" \
@@ -351,7 +345,8 @@ do_release_build() {
         DEVELOPMENT_TEAM="$TEAM_ID" \
         OTHER_CODE_SIGN_FLAGS="--timestamp" \
         CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO \
-        ${version:+MARKETING_VERSION="$version"}
+        ${RELEASE_VERSION:+MARKETING_VERSION="$RELEASE_VERSION"} \
+        ${RELEASE_BUILD:+CURRENT_PROJECT_VERSION="$RELEASE_BUILD"}
 
     APP_PATH="$BUILD_DIR/Build/Products/Release/$APP_NAME"
 
